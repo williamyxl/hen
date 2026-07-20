@@ -1,0 +1,56 @@
+# Local config (keep config.example.yaml)
+**/config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Run outputs
+*.log
+*.traj
+mc_trajectory.extxyz
+**/relaxed/
+**/strained/
+**/strained_extxyz/
+**/cp2k_inputs/
+*.out
+*.err
+*.restart
+*-RESTART.wfn
+*-RESTART.kp
+*.bak
+*.tmp
+
+# Large models / checkpoints (store paths locally)
+*.pt
+*.pth
+*.ckpt
+*.model
+checkpoints/
+wandb/
+
+# Keep empty final_sqs/ but ignore generated SQS dumps
+sqs_sampling/final_sqs/*
+!sqs_sampling/final_sqs/.gitkeep

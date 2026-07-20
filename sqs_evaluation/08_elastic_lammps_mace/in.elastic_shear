@@ -1,0 +1,8 @@
+! Generate with write_elastic_in.py (real MACE path + delta):
+!
+!   python write_elastic_in.py \
+!     --mace-model /path/to/mace.model \
+!     --type-order Ti Zr Hf Nb N \
+!     --data-file ../04_relax_lammps_mace/data.sqs.relaxed \
+!     --mode shear --delta 0.01 \
+!     --out in.shear_p010.generated

@@ -1,0 +1,7 @@
+! Do not paste COORD by hand. Generate strained cells + CP2K inputs with:
+!
+!   python make_strains.py \
+!     --structure ../03_relax_ase_mlip/relaxed/sqs_000_relaxed.extxyz \
+!     --out-dir strained_extxyz
+!
+! Then run each file under strained_extxyz/cp2k_inputs/*.inp

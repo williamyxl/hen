@@ -1,0 +1,13 @@
+! Generate a concrete input (absolute MACE path, species list) with:
+!
+!   python extxyz_to_lammps.py \
+!     --structure ../../sqs_sampling/final_sqs/sqs_000.extxyz \
+!     --out data.sqs \
+!     --type-order Ti Zr Hf Nb N
+!
+!   python write_lammps_in.py \
+!     --mace-model /path/to/mace.model \
+!     --type-order Ti Zr Hf Nb N \
+!     --out in.relax.generated
+!
+!   lmp -in in.relax.generated

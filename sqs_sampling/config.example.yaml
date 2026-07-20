@@ -1,0 +1,41 @@
+# Monte Carlo SQS sampling — example config
+# Copy to config.yaml and edit.
+
+prototype: rocksalt          # rocksalt | from_file
+structure_file: null         # required if prototype: from_file
+supercell: [2, 2, 2]         # conventional-cell repeats
+a: 4.25                      # lattice constant (Å) for rocksalt prototype
+
+# Species: anions fixed on anion sublattice; cations swapped on cation sites
+anion: N
+cation_composition:          # site fractions on cation sublattice (must sum to 1)
+  Ti: 0.25
+  Zr: 0.25
+  Hf: 0.25
+  Nb: 0.25
+
+# Monte Carlo
+seed: 42
+n_steps: 2000
+temperature_K: 1200          # Metropolis temperature
+equilibrate_steps: 200       # must be < n_steps
+sample_every: 50             # record sample every N steps after equilibration
+n_final: 5                   # distinct structures written to final_sqs/
+optional_relax: false        # short ionic relax before each energy (slow)
+relax_fmax: 0.05             # eV/Å if optional_relax
+relax_steps: 20
+
+# Warren–Cowley ranking (mean |alpha|; lower = more SQS-like)
+sro_cutoff: 3.5              # Å
+sro_shell_edges: [0.0, 2.6, 3.5]
+
+# Energy method (CLI --energy overrides)
+energy: gfn2-xtb             # gfn2-xtb | uma | mace
+device: cpu
+uma_model: uma-s-1p2
+uma_task: omat               # inorganic materials
+mace_model: null             # required path if energy: mace
+
+output_dir: final_sqs
+trajectory_file: mc_trajectory.extxyz
+log_file: mc_sqs.log
