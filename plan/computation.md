@@ -2,7 +2,7 @@
 
 Stack: **CP2K** (DFT), **ASE + MLIP**, **LAMMPS + MACE**. Target properties: [`properties.md`](properties.md).
 
-SQS sampling: Monte Carlo in [`sqs_sampling/`](../sqs_sampling/) (energy: GFN2-xTB / UMA / MACE) → [`final_sqs/`](../sqs_sampling/final_sqs/).  
+SQS sampling: Monte Carlo in [`sqs_sampling/`](../sqs_sampling/) with **GFN2-xTB** default (TBLite, 2000 SCC; also UMA / MACE) → [`final_sqs/`](../sqs_sampling/final_sqs/).  
 SQS evaluation: draft inputs in [`sqs_evaluation/`](../sqs_evaluation/).
 
 | Simulation type | Energy method | Measurement in simulation | Related target properties | SQS template |

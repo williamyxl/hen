@@ -29,19 +29,9 @@ def main() -> None:
     )
     parser.add_argument("--out-dir", type=Path, default=Path("strained_extxyz"))
     parser.add_argument(
-        "--strains",
-        type=float,
-        nargs="+",
-        default=[-0.01, -0.005, 0.005, 0.01],
+        "--strains", type=float, nargs="+", default=[-0.01, -0.005, 0.005, 0.01]
     )
     args = parser.parse_args()
-
-    if not args.structure.is_file():
-        raise FileNotFoundError(args.structure.resolve())
-    if len(args.strains) < 2:
-        raise ValueError("Need at least two strain values")
-    if 0.0 in args.strains:
-        raise ValueError("Do not include zero strain")
 
     base = read(args.structure, index=0)
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -50,28 +40,17 @@ def main() -> None:
 
     written = 0
     for delta in args.strains:
-        eps = np.zeros((3, 3))
-        eps[0, 0] = delta
-        atoms = apply(base, eps)
-        tag = f"uni_exx_{delta:+.4f}"
-        xyz = args.out_dir / f"{tag}.extxyz"
-        inp = inp_dir / f"{tag}.inp"
-        write(xyz, atoms)
-        inp.write_text(render_inp(atoms, tag, run_type="GEO_OPT"), encoding="utf-8")
-        written += 1
+        for tag, eps in (
+            (f"uni_exx_{delta:+.4f}", np.diag([delta, 0.0, 0.0])),
+            (f"shear_eyz_{delta:+.4f}", np.array([[0, 0, 0], [0, 0, 0.5 * delta], [0, 0.5 * delta, 0]])),
+        ):
+            atoms = apply(base, eps)
+            write(args.out_dir / f"{tag}.extxyz", atoms)
+            (inp_dir / f"{tag}.inp").write_text(
+                render_inp(atoms, tag, run_type="GEO_OPT"), encoding="utf-8"
+            )
+            written += 1
 
-        eps = np.zeros((3, 3))
-        eps[1, 2] = eps[2, 1] = 0.5 * delta
-        atoms = apply(base, eps)
-        tag = f"shear_eyz_{delta:+.4f}"
-        xyz = args.out_dir / f"{tag}.extxyz"
-        inp = inp_dir / f"{tag}.inp"
-        write(xyz, atoms)
-        inp.write_text(render_inp(atoms, tag, run_type="GEO_OPT"), encoding="utf-8")
-        written += 1
-
-    if written == 0:
-        raise RuntimeError("No strained structures written")
     print(f"wrote {written} strained structures under {args.out_dir.resolve()}")
 
 

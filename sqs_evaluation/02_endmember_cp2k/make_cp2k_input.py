@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import numpy as np
 from ase.io import read
 
 DEFAULT_POTENTIAL = {
@@ -24,15 +23,11 @@ DEFAULT_BASIS = "DZVP-MOLOPT-SR-GTH"
 
 
 def kind_block(symbol: str) -> str:
-    if symbol not in DEFAULT_POTENTIAL:
-        raise KeyError(
-            f"No default CP2K POTENTIAL for {symbol}; extend DEFAULT_POTENTIAL "
-            "in make_cp2k_input.py"
-        )
+    pot = DEFAULT_POTENTIAL[symbol]
     return (
         f"    &KIND {symbol}\n"
         f"      BASIS_SET {DEFAULT_BASIS}\n"
-        f"      POTENTIAL {DEFAULT_POTENTIAL[symbol]}\n"
+        f"      POTENTIAL {pot}\n"
         f"    &END KIND\n"
     )
 
@@ -41,8 +36,6 @@ def render_inp(atoms, project: str, run_type: str = "CELL_OPT") -> str:
     if run_type not in {"CELL_OPT", "GEO_OPT", "ENERGY"}:
         raise ValueError(f"Unsupported RUN_TYPE {run_type!r}")
     cell = atoms.cell.array
-    if not np.all(np.isfinite(cell)) or not np.all(np.isfinite(atoms.get_positions())):
-        raise RuntimeError("Non-finite cell or coordinates")
     species = sorted(set(atoms.get_chemical_symbols()))
     kinds = "".join(kind_block(s) for s in species)
     coords = "\n".join(
@@ -129,18 +122,11 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--project", type=str, default=None)
     parser.add_argument(
-        "--run-type",
-        choices=["CELL_OPT", "GEO_OPT", "ENERGY"],
-        default="CELL_OPT",
+        "--run-type", choices=["CELL_OPT", "GEO_OPT", "ENERGY"], default="CELL_OPT"
     )
     args = parser.parse_args()
 
-    if not args.structure.is_file():
-        raise FileNotFoundError(args.structure.resolve())
     atoms = read(args.structure, index=0)
-    if len(atoms) == 0:
-        raise ValueError("Empty structure")
-
     project = args.project or f"endmember_{atoms.get_chemical_formula()}"
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(render_inp(atoms, project, args.run_type), encoding="utf-8")

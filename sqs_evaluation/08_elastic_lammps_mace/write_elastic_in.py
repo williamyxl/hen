@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write LAMMPS+MACE uniaxial/shear strain inputs with real model paths."""
+"""Write LAMMPS+MACE uniaxial/shear strain inputs."""
 from __future__ import annotations
 
 import argparse
@@ -65,29 +65,20 @@ def main() -> None:
         default=Path("../04_relax_lammps_mace/data.sqs.relaxed"),
     )
     parser.add_argument("--delta", type=float, required=True)
-    parser.add_argument(
-        "--mode",
-        choices=["uniaxial", "shear"],
-        required=True,
-    )
+    parser.add_argument("--mode", choices=["uniaxial", "shear"], required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
-    if not args.mace_model.is_file():
-        raise FileNotFoundError(args.mace_model.resolve())
-    if not args.data_file.is_file():
-        raise FileNotFoundError(args.data_file.resolve())
-    if args.delta == 0.0:
-        raise ValueError("--delta must be non-zero")
-
     tmpl = UNIAXIAL if args.mode == "uniaxial" else SHEAR
-    text = tmpl.format(
-        data_file=args.data_file.resolve().as_posix(),
-        mace_model=args.mace_model.resolve().as_posix(),
-        species=" ".join(args.type_order),
-        delta=args.delta,
+    args.out.write_text(
+        tmpl.format(
+            data_file=args.data_file.resolve().as_posix(),
+            mace_model=args.mace_model.resolve().as_posix(),
+            species=" ".join(args.type_order),
+            delta=args.delta,
+        ),
+        encoding="utf-8",
     )
-    args.out.write_text(text, encoding="utf-8")
     print(f"wrote {args.out.resolve()}")
 
 

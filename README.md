@@ -7,7 +7,7 @@ Monte Carlo special quasirandom structure (SQS) sampling and property evaluation
 | Path | Role |
 |---|---|
 | [`plan/`](plan/) | Target properties and computation plan |
-| [`sqs_sampling/`](sqs_sampling/) | Metropolis MC SQS generator (GFN2-xTB / UMA / MACE) |
+| [`sqs_sampling/`](sqs_sampling/) | Metropolis MC SQS generator (default GFN2-xTB; also UMA / MACE) |
 | [`sqs_evaluation/`](sqs_evaluation/) | Numbered templates: SRO, relax, LLD, elastic, CP2K validation |
 
 ## Setup
@@ -27,7 +27,8 @@ cd sqs_sampling
 cp config.example.yaml config.yaml
 # edit composition / MC settings
 
-python mc_sqs.py --config config.yaml --energy gfn2-xtb
+python mc_sqs.py --config config.yaml          # GFN2-xTB (default)
+python run_gfn2_sqs.py --config config.yaml    # single-point smoke test
 ```
 
 Selected structures are written to `sqs_sampling/final_sqs/` as `.extxyz`. Evaluation steps and suggested order are documented in [`sqs_evaluation/README.md`](sqs_evaluation/README.md).

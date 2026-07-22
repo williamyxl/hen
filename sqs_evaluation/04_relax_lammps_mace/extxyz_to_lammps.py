@@ -20,27 +20,15 @@ def main() -> None:
         "--type-order",
         nargs="+",
         required=True,
-        help="Species order matching pair_coeff, e.g. Ti Zr Hf Nb N",
+        help="Species order matching pair_coeff, e.g. Ti Zr Hf Nb Ta N",
     )
     parser.add_argument("--frame", type=int, default=0)
     args = parser.parse_args()
 
-    if not args.structure.is_file():
-        raise FileNotFoundError(f"Structure not found: {args.structure.resolve()}")
-
     atoms = read(args.structure, index=args.frame)
-    symbols = set(atoms.get_chemical_symbols())
-    missing = sorted(symbols - set(args.type_order))
+    missing = sorted(set(atoms.get_chemical_symbols()) - set(args.type_order))
     if missing:
-        raise ValueError(
-            f"Species {missing} present in structure but missing from --type-order "
-            f"{args.type_order}"
-        )
-    unused = [s for s in args.type_order if s not in symbols]
-    if unused:
-        raise ValueError(
-            f"--type-order includes species absent from structure: {unused}"
-        )
+        raise ValueError(f"Species {missing} missing from --type-order")
 
     write(
         args.out,
@@ -50,8 +38,6 @@ def main() -> None:
         masses=True,
         atom_style="atomic",
     )
-    if not args.out.is_file():
-        raise RuntimeError(f"Failed to write {args.out.resolve()}")
     print(f"wrote {args.out.resolve()}")
 
 

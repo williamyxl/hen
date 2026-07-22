@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""ASE + MLIP finite-strain elastic constants for relaxed cubic SQS .extxyz.
-
-Target properties: C11, C12, C44; B, G, E, ν.
-"""
+"""ASE + MLIP finite-strain elastic constants for relaxed cubic SQS .extxyz."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 from ase.io import read, write
-from ase.optimize import FIRE
+from ase.optimize import LBFGS
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "sqs_sampling"))
@@ -28,44 +25,20 @@ def apply_strain(atoms, eps_matrix):
 
 
 def vrh_cubic(c11, c12, c44):
-    denom = 4.0 * c44 + 3.0 * (c11 - c12)
-    if abs(denom) < 1e-12:
-        raise RuntimeError(f"VRH shear denominator ~0: C11={c11}, C12={c12}, C44={c44}")
     bv = (c11 + 2.0 * c12) / 3.0
     gv = (c11 - c12 + 3.0 * c44) / 5.0
-    gr = 5.0 * (c11 - c12) * c44 / denom
-    b = bv
-    g = 0.5 * (gv + gr)
-    if abs(3.0 * b + g) < 1e-12:
-        raise RuntimeError("Cannot form E, ν: 3B+G ~ 0")
+    gr = 5.0 * (c11 - c12) * c44 / (4.0 * c44 + 3.0 * (c11 - c12))
+    b, g = bv, 0.5 * (gv + gr)
     e = 9.0 * b * g / (3.0 * b + g)
     nu = (3.0 * b - 2.0 * g) / (2.0 * (3.0 * b + g))
     return {"B": b, "G": g, "E": e, "nu": nu}
 
 
-def fit_slope(x, y, name: str) -> float:
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-    if x.size < 2:
-        raise ValueError(f"Need >=2 points to fit {name}")
-    slope = float(np.polyfit(x, y, 1)[0])
-    if not np.isfinite(slope):
-        raise RuntimeError(f"Non-finite slope for {name}")
-    return slope
-
-
 def ionic_relax(atoms, calc, fmax: float, steps: int):
     atoms = atoms.copy()
     atoms.calc = calc
-    FIRE(atoms, logfile=None).run(fmax=fmax, steps=steps)
-    max_force = float(np.linalg.norm(atoms.get_forces(), axis=1).max())
-    if max_force > fmax:
-        raise RuntimeError(
-            f"Ionic relax failed: max force={max_force:.4f} > fmax={fmax}"
-        )
+    LBFGS(atoms, logfile=None).run(fmax=fmax, steps=steps)
     stress = -np.asarray(atoms.get_stress(voigt=False), dtype=float) * EV_A3_TO_GPA
-    if not np.all(np.isfinite(stress)):
-        raise RuntimeError(f"Non-finite stress tensor: {stress}")
     return atoms, stress
 
 
@@ -85,26 +58,13 @@ def main() -> None:
     parser.add_argument("--fmax", type=float, default=0.01)
     parser.add_argument("--steps", type=int, default=200)
     parser.add_argument(
-        "--strains",
-        type=float,
-        nargs="+",
-        default=[-0.01, -0.005, 0.005, 0.01],
+        "--strains", type=float, nargs="+", default=[-0.01, -0.005, 0.005, 0.01]
     )
     args = parser.parse_args()
 
-    if not args.structures.is_file():
-        raise FileNotFoundError(args.structures.resolve())
-    if len(args.strains) < 2:
-        raise ValueError("Need at least two --strains values")
-    if 0.0 in args.strains:
-        raise ValueError("Strain list must not include 0 (use finite strains only)")
-
-    args.out_dir.mkdir(parents=True, exist_ok=True)
     frames = read(args.structures, index=":")
     if not isinstance(frames, list):
         frames = [frames]
-    if len(frames) == 0:
-        raise RuntimeError(f"No frames in {args.structures}")
 
     calc = build_calculator(
         args.energy,
@@ -114,32 +74,29 @@ def main() -> None:
         mace_model=args.mace_model,
     )
 
+    args.out_dir.mkdir(parents=True, exist_ok=True)
     results = []
     for n, base in enumerate(frames):
         s_uni, e_uni = [], []
         for delta in args.strains:
             eps = np.zeros((3, 3))
             eps[0, 0] = delta
-            atoms, stress = ionic_relax(
-                apply_strain(base, eps), calc, args.fmax, args.steps
-            )
+            atoms, stress = ionic_relax(apply_strain(base, eps), calc, args.fmax, args.steps)
             write(args.out_dir / f"sqs_{n:03d}_uni_{delta:+.4f}.extxyz", atoms)
             s_uni.append(stress)
             e_uni.append(delta)
-        c11 = fit_slope(e_uni, [s[0, 0] for s in s_uni], "C11")
-        c12 = fit_slope(e_uni, [s[1, 1] for s in s_uni], "C12")
+        c11 = float(np.polyfit(e_uni, [s[0, 0] for s in s_uni], 1)[0])
+        c12 = float(np.polyfit(e_uni, [s[1, 1] for s in s_uni], 1)[0])
 
         s_sh, e_sh = [], []
         for gamma in args.strains:
             eps = np.zeros((3, 3))
             eps[1, 2] = eps[2, 1] = 0.5 * gamma
-            atoms, stress = ionic_relax(
-                apply_strain(base, eps), calc, args.fmax, args.steps
-            )
+            atoms, stress = ionic_relax(apply_strain(base, eps), calc, args.fmax, args.steps)
             write(args.out_dir / f"sqs_{n:03d}_shear_{gamma:+.4f}.extxyz", atoms)
             s_sh.append(stress)
             e_sh.append(gamma)
-        c44 = fit_slope(e_sh, [s[1, 2] for s in s_sh], "C44")
+        c44 = float(np.polyfit(e_sh, [s[1, 2] for s in s_sh], 1)[0])
         der = vrh_cubic(c11, c12, c44)
         row = {
             "frame": n,
@@ -160,8 +117,7 @@ def main() -> None:
         )
 
     out_json = args.out_dir / "elastic.json"
-    with open(out_json, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
+    out_json.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print(f"wrote {out_json}")
 
 

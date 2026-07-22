@@ -9,10 +9,11 @@ a: 4.25                      # lattice constant (Å) for rocksalt prototype
 # Species: anions fixed on anion sublattice; cations swapped on cation sites
 anion: N
 cation_composition:          # site fractions on cation sublattice (must sum to 1)
-  Ti: 0.25
-  Zr: 0.25
-  Hf: 0.25
-  Nb: 0.25
+  Ti: 0.2
+  Zr: 0.2
+  Hf: 0.2
+  Nb: 0.2
+  Ta: 0.2
 
 # Monte Carlo
 seed: 42

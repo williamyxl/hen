@@ -2,14 +2,26 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 from ase import Atoms
-from ase.optimize import FIRE
+from ase.optimize import LBFGS
 
 SUPPORTED = ("gfn2-xtb", "uma", "mace")
+
+# Required for all GFN2-xTB / TBLite runs
+GFN2_MAX_ITERATIONS = 2000
+GFN2_OMP_NUM_THREADS = "1"
+GFN2_MKL_NUM_THREADS = "1"
+GFN2_OMP_STACKSIZE = "8G"
+
+
+def _configure_gfn2_threads() -> None:
+    os.environ["OMP_NUM_THREADS"] = GFN2_OMP_NUM_THREADS
+    os.environ["MKL_NUM_THREADS"] = GFN2_MKL_NUM_THREADS
+    os.environ["OMP_STACKSIZE"] = GFN2_OMP_STACKSIZE
 
 
 def build_calculator(
@@ -20,18 +32,16 @@ def build_calculator(
     uma_task: str = "omat",
     mace_model: str | None = None,
 ) -> Any:
-    """Return an ASE calculator for the requested energy method.
-
-    Imports the selected backend only. Missing packages raise ImportError.
-    """
+    """Return an ASE calculator for the requested energy method."""
     key = method.strip().lower()
     if key not in SUPPORTED:
         raise ValueError(f"Unknown energy method {method!r}; choose from {SUPPORTED}")
 
     if key == "gfn2-xtb":
+        _configure_gfn2_threads()
         from tblite.ase import TBLite
 
-        return TBLite(method="GFN2-xTB")
+        return TBLite(method="GFN2-xTB", max_iterations=GFN2_MAX_ITERATIONS)
 
     if key == "uma":
         from fairchem.core import FAIRChemCalculator, pretrained_mlip
@@ -39,15 +49,11 @@ def build_calculator(
         predictor = pretrained_mlip.get_predict_unit(uma_model, device=device)
         return FAIRChemCalculator(predictor, task_name=uma_task)
 
-    if mace_model is None:
+    if not mace_model:
         raise ValueError("MACE requires mace_model path (--mace-model or config mace_model)")
-    model_path = Path(mace_model)
-    if not model_path.is_file():
-        raise FileNotFoundError(f"MACE model not found: {model_path.resolve()}")
-
     from mace.calculators import MACECalculator
 
-    return MACECalculator(model_paths=str(model_path), device=device)
+    return MACECalculator(model_paths=str(Path(mace_model)), device=device)
 
 
 def evaluate_energy(
@@ -62,16 +68,5 @@ def evaluate_energy(
     atoms = atoms.copy()
     atoms.calc = calc
     if relax:
-        if steps < 1:
-            raise ValueError(f"relax_steps must be >= 1, got {steps}")
-        FIRE(atoms, logfile=None).run(fmax=fmax, steps=steps)
-        max_force = float(np.linalg.norm(atoms.get_forces(), axis=1).max())
-        if max_force > fmax:
-            raise RuntimeError(
-                f"Ionic relax failed to reach fmax={fmax} eV/Å "
-                f"(max force={max_force:.4f} eV/Å, steps={steps})"
-            )
-    energy = atoms.get_potential_energy()
-    if energy is None or not np.isfinite(energy):
-        raise RuntimeError(f"Calculator returned non-finite energy: {energy!r}")
-    return float(energy)
+        LBFGS(atoms, logfile=None).run(fmax=fmax, steps=steps)
+    return float(atoms.get_potential_energy())

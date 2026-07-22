@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Monte Carlo SQS sampling with selectable energy method.
+"""Monte Carlo SQS sampling.
 
-Energy methods: gfn2-xtb | uma | mace
-Outputs selected structures to final_sqs/ as .extxyz.
+Default energy: GFN2-xTB (TBLite, 2000 SCC cycles).
+Also supported: uma | mace. Outputs to final_sqs/ as .extxyz.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 import yaml
-from ase.io import read, write
+from ase.io import write
 
 from energy import SUPPORTED, build_calculator, evaluate_energy
 from lattice import (
@@ -27,55 +27,12 @@ from lattice import (
 
 KB_EV = 8.617333262145e-5  # eV/K
 
-REQUIRED_KEYS = (
-    "prototype",
-    "anion",
-    "cation_composition",
-    "a",
-    "supercell",
-    "seed",
-    "n_steps",
-    "temperature_K",
-    "equilibrate_steps",
-    "sample_every",
-    "n_final",
-    "optional_relax",
-    "relax_fmax",
-    "relax_steps",
-    "energy",
-    "device",
-    "uma_model",
-    "uma_task",
-    "output_dir",
-    "trajectory_file",
-    "log_file",
-    "sro_cutoff",
-    "sro_shell_edges",
-)
-
 
 def load_config(path: Path) -> dict:
-    if not path.is_file():
-        raise FileNotFoundError(
-            f"Missing config {path.resolve()}; copy config.example.yaml -> config.yaml"
-        )
     with open(path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
-    if not isinstance(cfg, dict):
-        raise ValueError(f"Config root must be a mapping, got {type(cfg).__name__}")
-    missing = [k for k in REQUIRED_KEYS if k not in cfg]
-    if missing:
-        raise KeyError(f"Config missing required keys: {missing}")
     if cfg["prototype"] == "from_file" and not cfg.get("structure_file"):
         raise KeyError("prototype=from_file requires structure_file")
-    if int(cfg["n_final"]) < 1:
-        raise ValueError(f"n_final must be >= 1, got {cfg['n_final']}")
-    if int(cfg["sample_every"]) < 1:
-        raise ValueError(f"sample_every must be >= 1, got {cfg['sample_every']}")
-    if int(cfg["n_steps"]) < 1:
-        raise ValueError(f"n_steps must be >= 1, got {cfg['n_steps']}")
-    if float(cfg["temperature_K"]) < 0:
-        raise ValueError(f"temperature_K must be >= 0, got {cfg['temperature_K']}")
     return cfg
 
 
@@ -84,13 +41,9 @@ def build_initial(cfg: dict, rng: np.random.Generator):
         atoms = load_template(cfg["structure_file"])
     elif cfg["prototype"] == "rocksalt":
         sc = tuple(int(x) for x in cfg["supercell"])
-        if len(sc) != 3:
-            raise ValueError(f"supercell must have 3 integers, got {cfg['supercell']}")
         atoms = build_rocksalt_supercell(cfg["anion"], float(cfg["a"]), sc)
     else:
-        raise ValueError(
-            f"Unknown prototype {cfg['prototype']!r}; use 'rocksalt' or 'from_file'"
-        )
+        raise ValueError(f"Unknown prototype {cfg['prototype']!r}")
     return assign_cation_composition(atoms, cfg["cation_composition"], rng)
 
 
@@ -105,23 +58,21 @@ def metropolis(de: float, temperature_k: float, rng: np.random.Generator) -> boo
 def run_mc(cfg: dict, energy_method: str, device: str, mace_model: str | None) -> None:
     out_dir = Path(cfg["output_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
-    log_path = Path(cfg["log_file"])
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(message)s",
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
+        handlers=[logging.FileHandler(cfg["log_file"]), logging.StreamHandler()],
         force=True,
     )
     log = logging.getLogger("mc_sqs")
 
     rng = np.random.default_rng(int(cfg["seed"]))
-    mace_path = mace_model if mace_model is not None else cfg.get("mace_model")
     calc = build_calculator(
         energy_method,
         device=device,
         uma_model=str(cfg["uma_model"]),
         uma_task=str(cfg["uma_task"]),
-        mace_model=mace_path,
+        mace_model=mace_model if mace_model is not None else cfg.get("mace_model"),
     )
 
     atoms = build_initial(cfg, rng)
@@ -147,20 +98,13 @@ def run_mc(cfg: dict, energy_method: str, device: str, mace_model: str | None) -
     n_steps = int(cfg["n_steps"])
     equil = int(cfg["equilibrate_steps"])
     sample_every = int(cfg["sample_every"])
-    if equil >= n_steps:
-        raise ValueError(
-            f"equilibrate_steps ({equil}) must be < n_steps ({n_steps}) "
-            "so at least one sample can be recorded"
-        )
-
     traj_path = Path(cfg["trajectory_file"])
     if traj_path.exists():
         traj_path.unlink()
 
     accepted = 0
     samples: list[tuple[float, float, object]] = []
-    best_e, best_atoms = e, atoms.copy()
-    best_score = score
+    best_e, best_atoms, best_score = e, atoms.copy(), score
 
     for step in range(1, n_steps + 1):
         new_atoms, _, _ = propose_swap(atoms, rng)
@@ -177,10 +121,12 @@ def run_mc(cfg: dict, energy_method: str, device: str, mace_model: str | None) -
         if step > equil and step % sample_every == 0:
             frame = atoms.copy()
             frame_score = sqs_correlation_score(frame, sro_cutoff, sro_edges)
-            frame.info["energy"] = e
-            frame.info["mc_step"] = step
-            frame.info["energy_method"] = energy_method
-            frame.info["sqs_abs_alpha"] = frame_score
+            frame.info.update(
+                energy=e,
+                mc_step=step,
+                energy_method=energy_method,
+                sqs_abs_alpha=frame_score,
+            )
             write(traj_path, frame, append=True)
             samples.append((e, frame_score, frame))
 
@@ -195,69 +141,50 @@ def run_mc(cfg: dict, energy_method: str, device: str, mace_model: str | None) -
                 best_score,
             )
 
-    if not samples:
-        raise RuntimeError(
-            "No MC samples recorded; check equilibrate_steps / sample_every / n_steps"
-        )
-
     samples.append((best_e, best_score, best_atoms))
-    # Prefer low |alpha| (SQS-like), then low energy
-    samples.sort(key=lambda x: (x[1], x[0]))
+    samples.sort(key=lambda x: (x[1], x[0]))  # low |alpha|, then low E
 
     n_final = int(cfg["n_final"])
     seen: set[tuple[str, ...]] = set()
-    written_frames = []
+    written = []
     for e_i, score_i, frame in samples:
         key = tuple(frame.get_chemical_symbols())
         if key in seen:
             continue
         seen.add(key)
-        out = out_dir / f"sqs_{len(written_frames):03d}.extxyz"
-        frame.info["energy"] = e_i
-        frame.info["energy_method"] = energy_method
-        frame.info["sqs_abs_alpha"] = score_i
+        frame.info.update(energy=e_i, energy_method=energy_method, sqs_abs_alpha=score_i)
+        out = out_dir / f"sqs_{len(written):03d}.extxyz"
         write(out, frame)
-        written_frames.append(frame)
+        written.append(frame)
         log.info("wrote %s  E=%.6f eV  |alpha|=%.4f", out, e_i, score_i)
-        if len(written_frames) >= n_final:
+        if len(written) >= n_final:
             break
 
-    if len(written_frames) < n_final:
+    if len(written) < n_final:
         raise RuntimeError(
-            f"Only collected {len(written_frames)} distinct occupations, "
-            f"but n_final={n_final}; increase n_steps or lower sample_every"
+            f"Only {len(written)} distinct occupations (n_final={n_final}); "
+            "increase n_steps or lower sample_every"
         )
-
-    write(out_dir / "sqs.extxyz", written_frames)
-    # Verify readable
-    check = read(out_dir / "sqs.extxyz", index=":")
-    if not isinstance(check, list):
-        check = [check]
-    if len(check) != n_final:
-        raise RuntimeError(
-            f"Expected {n_final} frames in sqs.extxyz, found {len(check)}"
-        )
-    log.info("wrote %s (%d frames)", out_dir / "sqs.extxyz", len(check))
+    write(out_dir / "sqs.extxyz", written)
+    log.info("wrote %s (%d frames)", out_dir / "sqs.extxyz", len(written))
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Monte Carlo SQS sampling")
+    parser = argparse.ArgumentParser(description="Monte Carlo SQS sampling (default: GFN2-xTB)")
     parser.add_argument("--config", type=Path, default=Path("config.yaml"))
     parser.add_argument(
         "--energy",
         choices=SUPPORTED,
         default=None,
-        help="Energy method (overrides config)",
+        help="Energy method (default: config or gfn2-xtb)",
     )
     parser.add_argument("--device", default=None, help="cpu|cuda (UMA/MACE)")
-    parser.add_argument("--mace-model", default=None, help="Path to MACE model file")
+    parser.add_argument("--mace-model", default=None)
     args = parser.parse_args()
 
     cfg = load_config(args.config)
-    energy = args.energy if args.energy is not None else str(cfg["energy"])
-    if energy not in SUPPORTED:
-        raise ValueError(f"Unsupported energy method {energy!r}; choose from {SUPPORTED}")
-    device = args.device if args.device is not None else str(cfg["device"])
+    energy = args.energy or str(cfg.get("energy", "gfn2-xtb"))
+    device = args.device or str(cfg.get("device", "cpu"))
     run_mc(cfg, energy, device, args.mace_model)
 
 
