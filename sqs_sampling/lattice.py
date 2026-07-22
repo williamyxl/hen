@@ -10,24 +10,71 @@ from ase import Atoms
 from ase.io import read
 from ase.neighborlist import neighbor_list
 
+# Ideal conventional rocksalt fractional coordinates (4 + 4)
+ROCKSALT_CATION_FRAC = np.array(
+    [
+        [0.0, 0.0, 0.0],
+        [0.0, 0.5, 0.5],
+        [0.5, 0.0, 0.5],
+        [0.5, 0.5, 0.0],
+    ]
+)
+DEFAULT_ENDMEMBER_CATIONS = ("Ti", "Zr", "Hf", "Nb", "Ta")
 
-def build_rocksalt_supercell(anion: str, a: float, supercell: tuple[int, int, int]) -> Atoms:
-    """Conventional rocksalt cell repeated to supercell; tags: 1=cation, 2=anion."""
-    cell = np.eye(3) * a
-    cation_frac = np.array(
-        [
-            [0.0, 0.0, 0.0],
-            [0.0, 0.5, 0.5],
-            [0.5, 0.0, 0.5],
-            [0.5, 0.5, 0.0],
-        ]
+
+def build_rocksalt_conventional(cation: str, anion: str, a: float) -> Atoms:
+    """Cubic conventional rocksalt MN cell (4 M + 4 N); tags: 1=cation, 2=anion."""
+    anion_frac = (ROCKSALT_CATION_FRAC + 0.5) % 1.0
+    symbols = [cation] * 4 + [anion] * 4
+    frac = np.vstack([ROCKSALT_CATION_FRAC, anion_frac])
+    atoms = Atoms(
+        symbols=symbols,
+        scaled_positions=frac,
+        cell=np.eye(3) * float(a),
+        pbc=True,
     )
-    anion_frac = (cation_frac + 0.5) % 1.0
-    symbols = ["Ti"] * 4 + [anion] * 4
-    frac = np.vstack([cation_frac, anion_frac])
-    base = Atoms(symbols=symbols, scaled_positions=frac, cell=cell, pbc=True)
-    base.set_tags([1] * 4 + [2] * 4)
-    return base.repeat(tuple(supercell))
+    atoms.set_tags([1] * 4 + [2] * 4)
+    return atoms
+
+
+def build_rocksalt_supercell(
+    anion: str,
+    a: float,
+    supercell: tuple[int, int, int],
+    *,
+    cation: str = "Ti",
+) -> Atoms:
+    """Conventional rocksalt cell repeated to supercell; tags: 1=cation, 2=anion."""
+    return build_rocksalt_conventional(cation, anion, a).repeat(tuple(supercell))
+
+
+def cubic_lattice_constant(atoms: Atoms, *, atol: float = 1e-4) -> float:
+    """Return cubic a after checking lengths/angles; average a,b,c if nearly cubic."""
+    lengths = atoms.cell.lengths()
+    angles = atoms.cell.angles()
+    if np.max(np.abs(lengths - lengths.mean())) > atol:
+        raise ValueError(f"Cell not cubic (lengths={lengths})")
+    if np.max(np.abs(angles - 90.0)) > 1e-2:
+        raise ValueError(f"Cell not cubic (angles={angles})")
+    return float(lengths.mean())
+
+
+def vegard_lattice_constant(
+    cation_composition: dict[str, float],
+    a_by_cation: dict[str, float],
+) -> float:
+    """Composition-weighted Vegard a from end-member rocksalt constants."""
+    total = 0.0
+    a_avg = 0.0
+    for sym, frac in cation_composition.items():
+        if sym not in a_by_cation:
+            raise KeyError(f"No calibrated a for cation {sym!r}; have {sorted(a_by_cation)}")
+        f = float(frac)
+        total += f
+        a_avg += f * float(a_by_cation[sym])
+    if abs(total - 1.0) > 1e-6:
+        raise ValueError(f"cation_composition must sum to 1; got {total}")
+    return float(a_avg)
 
 
 def load_template(path: str | Path) -> Atoms:

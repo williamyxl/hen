@@ -1,0 +1,126 @@
+{
+  "energy_method": "uma",
+  "device": "cuda",
+  "uma_model": "/mnt/d/workdir/uma-cache/uma-s-1p2.pt",
+  "uma_task": "omat",
+  "anion": "N",
+  "supercell": [
+    3,
+    3,
+    3
+  ],
+  "a_guess_A": 4.25,
+  "calibration_fmax": 0.01,
+  "endmembers": {
+    "TiN": {
+      "cation": "Ti",
+      "anion": "N",
+      "supercell": [
+        3,
+        3,
+        3
+      ],
+      "natoms": 216,
+      "a_A": 4.276296188118069,
+      "supercell_edge_A": 12.828888564354207,
+      "energy_eV": -2088.297683032887,
+      "energy_eV_per_atom": -9.668044828855958,
+      "a0_A": 4.25,
+      "formal_charge": 0,
+      "formal_spin": 109,
+      "uma_charge": 0,
+      "uma_spin": 100
+    },
+    "ZrN": {
+      "cation": "Zr",
+      "anion": "N",
+      "supercell": [
+        3,
+        3,
+        3
+      ],
+      "natoms": 216,
+      "a_A": 4.625702905106285,
+      "supercell_edge_A": 13.877108715318855,
+      "energy_eV": -2202.980372802149,
+      "energy_eV_per_atom": -10.198983207417356,
+      "a0_A": 4.25,
+      "formal_charge": 0,
+      "formal_spin": 109,
+      "uma_charge": 0,
+      "uma_spin": 100
+    },
+    "HfN": {
+      "cation": "Hf",
+      "anion": "N",
+      "supercell": [
+        3,
+        3,
+        3
+      ],
+      "natoms": 216,
+      "a_A": 4.5532078635138005,
+      "supercell_edge_A": 13.6596235905414,
+      "energy_eV": -2352.478701688928,
+      "energy_eV_per_atom": -10.891105100411705,
+      "a0_A": 4.25,
+      "formal_charge": 0,
+      "formal_spin": 109,
+      "uma_charge": 0,
+      "uma_spin": 100
+    },
+    "NbN": {
+      "cation": "Nb",
+      "anion": "N",
+      "supercell": [
+        3,
+        3,
+        3
+      ],
+      "natoms": 216,
+      "a_A": 4.500247402840145,
+      "supercell_edge_A": 13.500742208520435,
+      "energy_eV": -2145.8232826730787,
+      "energy_eV_per_atom": -9.934367049412401,
+      "a0_A": 4.25,
+      "formal_charge": 0,
+      "formal_spin": 217,
+      "uma_charge": 0,
+      "uma_spin": 100
+    },
+    "TaN": {
+      "cation": "Ta",
+      "anion": "N",
+      "supercell": [
+        3,
+        3,
+        3
+      ],
+      "natoms": 216,
+      "a_A": 4.467238016737072,
+      "supercell_edge_A": 13.401714050211217,
+      "energy_eV": -2331.097215667807,
+      "energy_eV_per_atom": -10.792116739202811,
+      "a0_A": 4.25,
+      "formal_charge": 0,
+      "formal_spin": 217,
+      "uma_charge": 0,
+      "uma_spin": 100
+    }
+  },
+  "a_by_cation_A": {
+    "Ti": 4.276296188118069,
+    "Zr": 4.625702905106285,
+    "Hf": 4.5532078635138005,
+    "Nb": 4.500247402840145,
+    "Ta": 4.467238016737072
+  },
+  "cation_composition": {
+    "Ti": 0.2,
+    "Zr": 0.2,
+    "Hf": 0.2,
+    "Nb": 0.2,
+    "Ta": 0.2
+  },
+  "vegard_a_A": 4.484538475263075
+}

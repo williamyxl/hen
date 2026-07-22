@@ -32,9 +32,11 @@ def main() -> None:
     )
     parser.add_argument("--out-dir", type=Path, default=Path("relaxed"))
     parser.add_argument("--energy", choices=SUPPORTED, required=True)
-    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--device", default="cuda")
     parser.add_argument("--mace-model", default=None)
-    parser.add_argument("--uma-model", default="uma-s-1p2")
+    parser.add_argument(
+        "--uma-model", default="/mnt/d/workdir/uma-cache/uma-s-1p2.pt"
+    )
     parser.add_argument("--uma-task", default="omat")
     parser.add_argument("--fmax", type=float, default=0.01)
     parser.add_argument("--steps", type=int, default=500)

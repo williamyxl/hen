@@ -3,8 +3,17 @@
 
 prototype: rocksalt          # rocksalt | from_file
 structure_file: null         # required if prototype: from_file
-supercell: [2, 2, 2]         # conventional-cell repeats
-a: 4.25                      # lattice constant (Å) for rocksalt prototype
+supercell: [3, 3, 3]         # conventional-cell repeats (calibration + SQS)
+a: 4.25                      # used if calibrate_lattice: false; also a_guess default
+
+# Cubic end-member calibration (TiN…TaN) → Vegard a for SQS cell
+calibrate_lattice: true
+a_guess: 4.25                # initial cubic a for end-member CELL_OPT
+calibration_fmax: 0.01
+calibration_steps: 200
+calibration_dir: calibration
+calibration_file: calibration/calibration.json
+recalibrate: false           # true to ignore existing calibration_file
 
 # Species: anions fixed on anion sublattice; cations swapped on cation sites
 anion: N
@@ -15,27 +24,28 @@ cation_composition:          # site fractions on cation sublattice (must sum to 
   Nb: 0.2
   Ta: 0.2
 
-# Monte Carlo
+# Rosenbluth CBMC (gfn2-xtb: parallel TBLite workers; uma: shared FairChem calc)
 seed: 42
 n_steps: 2000
-temperature_K: 1200          # Metropolis temperature
+temperature_K: 1200          # Rosenbluth β = 1/(kT)
 equilibrate_steps: 200       # must be < n_steps
 sample_every: 50             # record sample every N steps after equilibration
-n_final: 5                   # distinct structures written to final_sqs/
-optional_relax: false        # short ionic relax before each energy (slow)
-relax_fmax: 0.05             # eV/Å if optional_relax
-relax_steps: 20
+cbmc_trials: 10              # concurrent atom-swap trials per CBMC step
 
-# Warren–Cowley ranking (mean |alpha|; lower = more SQS-like)
+# Warren–Cowley SRO metric logged on samples (mean |alpha|; lower = more SQS-like)
 sro_cutoff: 3.5              # Å
 sro_shell_edges: [0.0, 2.6, 3.5]
 
-# Energy method (CLI --energy overrides)
-energy: gfn2-xtb             # gfn2-xtb | uma | mace
-device: cpu
-uma_model: uma-s-1p2
-uma_task: omat               # inorganic materials
-mace_model: null             # required path if energy: mace
+# Energy backend for CBMC: gfn2-xtb | uma | nvalchemi-uma
+energy: uma
+
+# UMA (FairChem ASE) or nvalchemi-uma (NVIDIA UMAWrapper, sequential)
+device: cuda
+uma_model: /mnt/d/workdir/uma-cache/uma-s-1p2.pt
+uma_task: omat
+inference_settings: default   # nvalchemi-uma: default | turbo
+nvalchemi_batch: false        # nvalchemi-uma: batch CBMC trials (high VRAM)
+
 
 output_dir: final_sqs
 trajectory_file: mc_trajectory.extxyz
