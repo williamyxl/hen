@@ -54,3 +54,6 @@ wandb/
 # Keep empty final_sqs/ but ignore generated SQS dumps
 sqs_sampling/final_sqs/*
 !sqs_sampling/final_sqs/.gitkeep
+
+# Timestamped mc_sqs run directories
+sqs_sampling/runs/

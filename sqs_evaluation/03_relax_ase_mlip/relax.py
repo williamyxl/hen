@@ -14,13 +14,46 @@ from ase.optimize import LBFGS
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "sqs_sampling"))
-from energy import SUPPORTED, build_calculator  # noqa: E402
+from energy import (  # noqa: E402
+    SUPPORTED,
+    UMA_DEFAULTS,
+    configure_gfn2_threads,
+    gfn2_tblite_params,
+    uma_predict_unit,
+)
 
 
 def mixing_enthalpy(atoms, energy: float, eref: dict[str, float]) -> float:
     """ΔH_mix per atom = E/N - sum(c_i E_i_ref)."""
     symbols = atoms.get_chemical_symbols()
     return energy / len(symbols) - sum(eref[s] for s in symbols) / len(symbols)
+
+
+def make_calc(args: argparse.Namespace):
+    if args.energy == "gfn2-xtb":
+        from tblite.ase import TBLite
+
+        configure_gfn2_threads()
+        return TBLite(**gfn2_tblite_params())
+    if args.energy == "uma":
+        from fairchem.core import FAIRChemCalculator
+
+        return FAIRChemCalculator(
+            uma_predict_unit(
+                model=args.uma_model or UMA_DEFAULTS["model"],
+                device=args.device,
+                dtype=args.dtype,
+                workers=1,
+            ),
+            task_name=args.uma_task,
+        )
+    if args.energy == "mace":
+        if not args.mace_model:
+            raise ValueError("MACE requires --mace-model")
+        from mace.calculators import MACECalculator
+
+        return MACECalculator(model_paths=str(Path(args.mace_model)), device=args.device)
+    raise ValueError(f"Unknown energy method {args.energy!r}; choose from {SUPPORTED}")
 
 
 def main() -> None:
@@ -32,10 +65,12 @@ def main() -> None:
     )
     parser.add_argument("--out-dir", type=Path, default=Path("relaxed"))
     parser.add_argument("--energy", choices=SUPPORTED, required=True)
-    parser.add_argument("--device", default="cuda")
+    parser.add_argument("--device", default="xpu")
+    parser.add_argument("--dtype", default="float64")
     parser.add_argument("--mace-model", default=None)
     parser.add_argument(
-        "--uma-model", default="/mnt/d/workdir/uma-cache/uma-s-1p2.pt"
+        "--uma-model",
+        default="/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
     )
     parser.add_argument("--uma-task", default="omat")
     parser.add_argument("--fmax", type=float, default=0.01)
@@ -50,13 +85,7 @@ def main() -> None:
     if not isinstance(frames, list):
         frames = [frames]
 
-    calc = build_calculator(
-        args.energy,
-        device=args.device,
-        uma_model=args.uma_model,
-        uma_task=args.uma_task,
-        mace_model=args.mace_model,
-    )
+    calc = make_calc(args)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     relaxed, summary = [], []
