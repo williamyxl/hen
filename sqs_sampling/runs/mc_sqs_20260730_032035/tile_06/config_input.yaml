@@ -1,0 +1,43 @@
+# Shared config for 12 independent single-tile CBMC ranks (see mc_sqs_uma_1tile.pbs).
+# PBS creates runs/mc_sqs_<stamp>/tile_XX and passes --run-dir / --seed per rank.
+
+prototype: rocksalt
+structure_file: null
+supercell: [3, 3, 3]         # 216 atoms; fits one PVC tile for FP64 E
+a: 4.484538475263075         # fallback if calibrate_lattice: false
+
+# Reuse existing Vegard a (skip end-member re-opt on the compute node)
+calibrate_lattice: true
+a_guess: 4.25
+calibration_fmax: 0.01
+calibration_steps: 200
+calibration_dir: calibration
+calibration_file: calibration/calibration.json
+recalibrate: false
+
+anion: N
+cation_composition:
+  Ti: 0.2
+  Zr: 0.2
+  Hf: 0.2
+  Nb: 0.2
+  Ta: 0.2
+
+seed: 42
+n_steps: 500                 # ~42 min MC @ ~5 s/step (+~2 min load) within 1h
+temperature_K: 1200
+equilibrate_steps: 50
+sample_every: 50
+cbmc_trials: 10
+
+sro_cutoff: 3.5
+sro_shell_edges: [0.0, 2.6, 3.5]
+
+energy: uma
+device: xpu
+dtype: float64
+uma_workers: 1
+uma_model: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt
+uma_task: omat
+
+# Output directory is set by --run-dir (PBS creates the folder).

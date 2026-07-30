@@ -1,0 +1,42 @@
+prototype: rocksalt
+structure_file: null
+supercell:
+- 3
+- 3
+- 3
+a: 4.484538475263075
+calibrate_lattice: true
+a_guess: 4.25
+calibration_fmax: 0.01
+calibration_steps: 200
+calibration_dir: calibration
+calibration_file: calibration/calibration.json
+recalibrate: false
+anion: N
+cation_composition:
+  Ti: 0.2
+  Zr: 0.2
+  Hf: 0.2
+  Nb: 0.2
+  Ta: 0.2
+seed: 42
+n_steps: 500
+temperature_K: 1200
+equilibrate_steps: 50
+sample_every: 50
+cbmc_trials: 10
+sro_cutoff: 3.5
+sro_shell_edges:
+- 0.0
+- 2.6
+- 3.5
+energy: uma
+device: xpu
+dtype: float64
+uma_workers: 1
+uma_model: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt
+uma_task: omat
+run_dir: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_00
+output_dir: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_00
+trajectory_file: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_00/mc_trajectory.extxyz
+log_file: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_00/mc_sqs.log

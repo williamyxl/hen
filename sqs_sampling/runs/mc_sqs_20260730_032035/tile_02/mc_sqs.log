@@ -1,0 +1,26 @@
+2026-07-30 03:21:02,362 run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02
+2026-07-30 03:21:02,393 reusing calibration/calibration.json  vegard_a=4.484538 Å
+2026-07-30 03:23:53,786 HEN vanilla XPU device patch applied (no multi-GPU)
+2026-07-30 03:24:08,925 Adding 5 untrained task(s): ['oc22_stress', 'omol_stress', 'odac_stress', 'oc20_stress', 'oc25_stress']
+2026-07-30 03:24:16,454 start Hf22N108Nb21Ta21Ti22Zr22 energy=uma supercell=[3, 3, 3] a=4.484538 Å CBMC trials=10 uma_workers=1 device=xpu charge=0 uma_spin=0 (off) E=-2237.217576 eV |alpha|=0.0682 T=1200.0 K steps=500 run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02
+2026-07-30 03:28:23,516 step 50/500  E=-2238.420314  accept=0.880  W_new/W_old=0.9269  best_E=-2238.486330  best_|alpha|=0.1095
+2026-07-30 03:32:30,270 step 100/500  E=-2238.473839  accept=0.880  W_new/W_old=0.6247  best_E=-2238.584690  best_|alpha|=0.1163
+2026-07-30 03:36:37,504 step 150/500  E=-2238.010200  accept=0.873  W_new/W_old=1.2877  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 03:40:44,317 step 200/500  E=-2238.434774  accept=0.850  W_new/W_old=2.5865  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 03:44:51,629 step 250/500  E=-2238.179684  accept=0.848  W_new/W_old=3.0334  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 03:48:58,306 step 300/500  E=-2238.279192  accept=0.840  W_new/W_old=0.5256  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 03:53:05,023 step 350/500  E=-2238.384062  accept=0.851  W_new/W_old=0.5910  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 03:57:11,982 step 400/500  E=-2238.349806  accept=0.858  W_new/W_old=1.0280  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 04:01:18,996 step 450/500  E=-2238.364850  accept=0.862  W_new/W_old=0.2715  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 04:05:26,064 step 500/500  E=-2238.472727  accept=0.868  W_new/W_old=0.8155  best_E=-2238.829051  best_|alpha|=0.1097
+2026-07-30 04:05:26,072 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_000.extxyz  mc_step=100  E=-2238.473839 eV  |alpha|=0.1203
+2026-07-30 04:05:26,077 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_001.extxyz  mc_step=150  E=-2238.010200 eV  |alpha|=0.0855
+2026-07-30 04:05:26,082 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_002.extxyz  mc_step=200  E=-2238.434774 eV  |alpha|=0.1190
+2026-07-30 04:05:26,087 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_003.extxyz  mc_step=250  E=-2238.179684 eV  |alpha|=0.1009
+2026-07-30 04:05:26,093 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_004.extxyz  mc_step=300  E=-2238.279192 eV  |alpha|=0.1024
+2026-07-30 04:05:26,099 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_005.extxyz  mc_step=350  E=-2238.384062 eV  |alpha|=0.0912
+2026-07-30 04:05:26,104 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_006.extxyz  mc_step=400  E=-2238.349806 eV  |alpha|=0.1119
+2026-07-30 04:05:26,109 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_007.extxyz  mc_step=450  E=-2238.364850 eV  |alpha|=0.1284
+2026-07-30 04:05:26,114 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs_008.extxyz  mc_step=500  E=-2238.472727 eV  |alpha|=0.1392
+2026-07-30 04:05:26,127 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02/sqs.extxyz (9 frames, CBMC order)
+2026-07-30 04:05:26,127 finished run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_02

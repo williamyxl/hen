@@ -55,5 +55,10 @@ wandb/
 sqs_sampling/final_sqs/*
 !sqs_sampling/final_sqs/.gitkeep
 
-# Timestamped mc_sqs run directories
-sqs_sampling/runs/
+# Timestamped mc_sqs run directories (keep selected production runs)
+sqs_sampling/runs/*
+!sqs_sampling/runs/mc_sqs_20260730_032035/
+!sqs_sampling/runs/mc_sqs_20260730_032035/**
+# Re-include logs / traj under the kept production run (global *.log / mc_trajectory ignore)
+!sqs_sampling/runs/mc_sqs_20260730_032035/**/*.log
+!sqs_sampling/runs/mc_sqs_20260730_032035/**/mc_trajectory.extxyz

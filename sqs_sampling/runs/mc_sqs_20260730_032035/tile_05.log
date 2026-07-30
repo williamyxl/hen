@@ -1,0 +1,27 @@
+2026-07-30 03:21:02,361 run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05
+2026-07-30 03:21:02,393 reusing calibration/calibration.json  vegard_a=4.484538 Å
+2026-07-30 03:23:53,786 HEN vanilla XPU device patch applied (no multi-GPU)
+2026-07-30 03:24:08,880 Adding 5 untrained task(s): ['oc22_stress', 'oc20_stress', 'oc25_stress', 'odac_stress', 'omol_stress']
+2026-07-30 03:24:16,454 start Hf22N108Nb21Ta21Ti22Zr22 energy=uma supercell=[3, 3, 3] a=4.484538 Å CBMC trials=10 uma_workers=1 device=xpu charge=0 uma_spin=0 (off) E=-2237.579543 eV |alpha|=0.1175 T=1200.0 K steps=500 run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05
+2026-07-30 03:28:24,200 step 50/500  E=-2238.331538  accept=0.900  W_new/W_old=2.1613  best_E=-2238.729035  best_|alpha|=0.1475
+2026-07-30 03:32:31,083 step 100/500  E=-2237.790474  accept=0.860  W_new/W_old=0.6069  best_E=-2238.729035  best_|alpha|=0.1475
+2026-07-30 03:36:38,988 step 150/500  E=-2238.258042  accept=0.847  W_new/W_old=1.0054  best_E=-2238.729035  best_|alpha|=0.1475
+2026-07-30 03:40:47,094 step 200/500  E=-2238.185431  accept=0.855  W_new/W_old=0.7286  best_E=-2238.729035  best_|alpha|=0.1475
+2026-07-30 03:44:55,015 step 250/500  E=-2238.254108  accept=0.852  W_new/W_old=1.3789  best_E=-2238.729035  best_|alpha|=0.1475
+2026-07-30 03:49:03,058 step 300/500  E=-2238.129734  accept=0.853  W_new/W_old=0.8560  best_E=-2238.729035  best_|alpha|=0.1475
+2026-07-30 03:53:10,743 step 350/500  E=-2238.302048  accept=0.854  W_new/W_old=0.9484  best_E=-2238.762057  best_|alpha|=0.1628
+2026-07-30 03:57:18,459 step 400/500  E=-2238.236169  accept=0.855  W_new/W_old=1.1747  best_E=-2238.762057  best_|alpha|=0.1628
+2026-07-30 04:01:26,206 step 450/500  E=-2238.601219  accept=0.860  W_new/W_old=1.3975  best_E=-2238.762057  best_|alpha|=0.1628
+2026-07-30 04:05:33,734 step 500/500  E=-2238.710189  accept=0.860  W_new/W_old=1.1368  best_E=-2238.874611  best_|alpha|=0.1269
+2026-07-30 04:05:33,762 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_000.extxyz  mc_step=100  E=-2237.790474 eV  |alpha|=0.0802
+2026-07-30 04:05:33,768 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_001.extxyz  mc_step=150  E=-2238.258042 eV  |alpha|=0.1083
+2026-07-30 04:05:33,773 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_002.extxyz  mc_step=200  E=-2238.185431 eV  |alpha|=0.0762
+2026-07-30 04:05:33,779 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_003.extxyz  mc_step=250  E=-2238.254108 eV  |alpha|=0.1125
+2026-07-30 04:05:33,784 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_004.extxyz  mc_step=300  E=-2238.129734 eV  |alpha|=0.1079
+2026-07-30 04:05:33,789 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_005.extxyz  mc_step=350  E=-2238.302048 eV  |alpha|=0.1135
+2026-07-30 04:05:33,795 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_006.extxyz  mc_step=400  E=-2238.236169 eV  |alpha|=0.1104
+2026-07-30 04:05:33,801 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_007.extxyz  mc_step=450  E=-2238.601219 eV  |alpha|=0.1344
+2026-07-30 04:05:33,806 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs_008.extxyz  mc_step=500  E=-2238.710189 eV  |alpha|=0.1261
+2026-07-30 04:05:33,817 wrote /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05/sqs.extxyz (9 frames, CBMC order)
+2026-07-30 04:05:33,817 finished run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05
+run_dir=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_05
