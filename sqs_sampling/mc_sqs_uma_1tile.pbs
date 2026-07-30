@@ -1,0 +1,95 @@
+#!/bin/bash -l
+#PBS -N hen_mc_uma12
+#PBS -q debug-scaling
+# Allowed queues for HEN tests: debug | debug-scaling ONLY (never prod/capacity/etc.)
+#PBS -A MatSciAI
+#PBS -l filesystems=flare
+#PBS -l select=1:ncpus=204:mpiprocs=1:ompthreads=1
+#PBS -l walltime=01:00:00
+#PBS -j oe
+#PBS -k doe
+
+# One Aurora node, 12 independent single-tile mc_sqs.py.
+# Layout: runs/mc_sqs_YYYYMMDD_HHMMSS/tile_XX/{log,traj,sqs…}
+# From hen/: qsub sqs_sampling/mc_sqs_uma_1tile.pbs
+
+module reset
+module list
+
+export http_proxy="http://proxy.alcf.anl.gov:3128"
+export https_proxy="http://proxy.alcf.anl.gov:3128"
+export ftp_proxy="http://proxy.alcf.anl.gov:3128"
+
+export ZE_FLAT_DEVICE_HIERARCHY=FLAT
+export ZE_ENABLE_PCI_ID_DEVICE_ORDER=1
+
+source /lus/flare/projects/MOFA/xiaoliyan/software/miniforge3/etc/profile.d/conda.sh
+conda activate /lus/flare/projects/MatSciAI/xiaoliyan/software/conda/envs/hen-xpu
+
+SQS=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling
+CFG="${SQS}/config_uma_xpu_1tile.yaml"
+MC="${SQS}/mc_sqs.py"
+
+cd "${SQS}"
+
+STAMP=$(date +%Y%m%d_%H%M%S)
+JOB_DIR="${SQS}/runs/mc_sqs_${STAMP}"
+mkdir -p \
+  "${JOB_DIR}/tile_00" "${JOB_DIR}/tile_01" "${JOB_DIR}/tile_02" \
+  "${JOB_DIR}/tile_03" "${JOB_DIR}/tile_04" "${JOB_DIR}/tile_05" \
+  "${JOB_DIR}/tile_06" "${JOB_DIR}/tile_07" "${JOB_DIR}/tile_08" \
+  "${JOB_DIR}/tile_09" "${JOB_DIR}/tile_10" "${JOB_DIR}/tile_11"
+cp -f "${CFG}" "${JOB_DIR}/config_input.yaml"
+echo "job_dir=${JOB_DIR}"
+
+# Tiles 0–5 → socket 0 / NUMA 0; tiles 6–11 → socket 1 / NUMA 1
+# CPU lists from ALCF Example 4 (skip OS-reserved cores 0 and 52).
+ZE_AFFINITY_MASK=0  numactl --physcpubind=1-8   --membind=0 \
+  python "${MC}" --config "${CFG}" --seed 42 --run-dir "${JOB_DIR}/tile_00" \
+  > "${JOB_DIR}/tile_00.log" 2>&1 &
+
+ZE_AFFINITY_MASK=1  numactl --physcpubind=9-16  --membind=0 \
+  python "${MC}" --config "${CFG}" --seed 43 --run-dir "${JOB_DIR}/tile_01" \
+  > "${JOB_DIR}/tile_01.log" 2>&1 &
+
+ZE_AFFINITY_MASK=2  numactl --physcpubind=17-24 --membind=0 \
+  python "${MC}" --config "${CFG}" --seed 44 --run-dir "${JOB_DIR}/tile_02" \
+  > "${JOB_DIR}/tile_02.log" 2>&1 &
+
+ZE_AFFINITY_MASK=3  numactl --physcpubind=25-32 --membind=0 \
+  python "${MC}" --config "${CFG}" --seed 45 --run-dir "${JOB_DIR}/tile_03" \
+  > "${JOB_DIR}/tile_03.log" 2>&1 &
+
+ZE_AFFINITY_MASK=4  numactl --physcpubind=33-40 --membind=0 \
+  python "${MC}" --config "${CFG}" --seed 46 --run-dir "${JOB_DIR}/tile_04" \
+  > "${JOB_DIR}/tile_04.log" 2>&1 &
+
+ZE_AFFINITY_MASK=5  numactl --physcpubind=41-48 --membind=0 \
+  python "${MC}" --config "${CFG}" --seed 47 --run-dir "${JOB_DIR}/tile_05" \
+  > "${JOB_DIR}/tile_05.log" 2>&1 &
+
+ZE_AFFINITY_MASK=6  numactl --physcpubind=53-60 --membind=1 \
+  python "${MC}" --config "${CFG}" --seed 48 --run-dir "${JOB_DIR}/tile_06" \
+  > "${JOB_DIR}/tile_06.log" 2>&1 &
+
+ZE_AFFINITY_MASK=7  numactl --physcpubind=61-68 --membind=1 \
+  python "${MC}" --config "${CFG}" --seed 49 --run-dir "${JOB_DIR}/tile_07" \
+  > "${JOB_DIR}/tile_07.log" 2>&1 &
+
+ZE_AFFINITY_MASK=8  numactl --physcpubind=69-76 --membind=1 \
+  python "${MC}" --config "${CFG}" --seed 50 --run-dir "${JOB_DIR}/tile_08" \
+  > "${JOB_DIR}/tile_08.log" 2>&1 &
+
+ZE_AFFINITY_MASK=9  numactl --physcpubind=77-84 --membind=1 \
+  python "${MC}" --config "${CFG}" --seed 51 --run-dir "${JOB_DIR}/tile_09" \
+  > "${JOB_DIR}/tile_09.log" 2>&1 &
+
+ZE_AFFINITY_MASK=10 numactl --physcpubind=85-92 --membind=1 \
+  python "${MC}" --config "${CFG}" --seed 52 --run-dir "${JOB_DIR}/tile_10" \
+  > "${JOB_DIR}/tile_10.log" 2>&1 &
+
+ZE_AFFINITY_MASK=11 numactl --physcpubind=93-100 --membind=1 \
+  python "${MC}" --config "${CFG}" --seed 53 --run-dir "${JOB_DIR}/tile_11" \
+  > "${JOB_DIR}/tile_11.log" 2>&1 &
+
+wait

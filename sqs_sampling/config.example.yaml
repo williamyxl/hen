@@ -1,4 +1,4 @@
-# Monte Carlo SQS sampling — example config
+# Monte Carlo SQS sampling — example config (Intel XPU / Aurora)
 # Copy to config.yaml and edit.
 
 prototype: rocksalt          # rocksalt | from_file
@@ -36,17 +36,17 @@ cbmc_trials: 10              # concurrent atom-swap trials per CBMC step
 sro_cutoff: 3.5              # Å
 sro_shell_edges: [0.0, 2.6, 3.5]
 
-# Energy backend for CBMC: gfn2-xtb | uma | nvalchemi-uma
+# Energy backend for CBMC: gfn2-xtb | uma
 energy: uma
 
-# UMA (FairChem ASE) or nvalchemi-uma (NVIDIA UMAWrapper, sequential)
-device: cuda
-uma_model: /mnt/d/workdir/uma-cache/uma-s-1p2.pt
+# FairChem UMA on Aurora Intel XPU (FLAT, one tile via ZE_AFFINITY_MASK)
+# Checkpoint: uma-s-1p2.pt only (do not use uma-m-1p1.pt)
+device: xpu
+dtype: float64
+uma_workers: 1               # CBMC: single tile only (vanilla MLIPPredictUnit)
+uma_model: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt
 uma_task: omat
-inference_settings: default   # nvalchemi-uma: default | turbo
-nvalchemi_batch: false        # nvalchemi-uma: batch CBMC trials (high VRAM)
 
-
-output_dir: final_sqs
-trajectory_file: mc_trajectory.extxyz
-log_file: mc_sqs.log
+# Output directory: pass an existing folder via --run-dir
+#   (PBS creates runs/mc_sqs_<stamp>/tile_XX/; interactive: mkdir first)
+# run_dir: runs/my_run

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Single-point energy (GFN2-xTB or UMA) on an SQS initial structure."""
+"""Single-point energy (GFN2-xTB or FairChem UMA on Intel XPU) on an SQS structure."""
 
 from __future__ import annotations
 
@@ -19,9 +19,12 @@ from ase.io import read
 
 from energy import (
     CBMC_SUPPORTED,
-    build_calculator,
+    UMA_DEFAULTS,
+    configure_gfn2_threads,
     formal_charge_and_multiplicity,
+    gfn2_tblite_params,
     set_uma_spin_charge,
+    uma_predict_unit,
 )
 from lattice import composition_string
 from mc_sqs import build_initial
@@ -29,7 +32,7 @@ from mc_sqs import build_initial
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Single-point GFN2-xTB or UMA on SQS structure"
+        description="Single-point GFN2-xTB or FairChem UMA (XPU) on SQS structure"
     )
     src = parser.add_mutually_exclusive_group(required=True)
     src.add_argument("--config", type=Path, help="Build initial SQS from YAML")
@@ -40,20 +43,10 @@ def main() -> None:
         default=None,
         help="Energy method (default: config energy, else uma)",
     )
-    parser.add_argument("--device", default=None, help="UMA device (cpu/cuda)")
+    parser.add_argument("--device", default=None, help="UMA device (xpu; cpu for debug)")
+    parser.add_argument("--dtype", default=None, help="FairChem dtype (float64 required)")
     parser.add_argument("--uma-model", default=None)
     parser.add_argument("--uma-task", default=None)
-    parser.add_argument(
-        "--inference-settings",
-        default=None,
-        help="nvalchemi-uma: default | turbo",
-    )
-    parser.add_argument(
-        "--nvalchemi-batch",
-        action="store_true",
-        default=None,
-        help="nvalchemi-uma: batch CBMC trials in one forward (high VRAM)",
-    )
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--json-out", type=Path, default=None)
     args = parser.parse_args()
@@ -79,32 +72,28 @@ def main() -> None:
             f"energy method {method!r} not supported; choose from {CBMC_SUPPORTED}"
         )
 
-    device = args.device or str(cfg.get("device", "cuda"))
-    uma_model = args.uma_model or str(
-        cfg.get("uma_model", "/mnt/d/workdir/uma-cache/uma-s-1p2.pt")
+    device = args.device or str(cfg.get("device", "xpu"))
+    dtype = args.dtype or str(cfg.get("dtype", "float64"))
+    uma_model = args.uma_model or (
+        str(cfg["uma_model"]) if cfg.get("uma_model") else UMA_DEFAULTS["model"]
     )
     uma_task = args.uma_task or str(cfg.get("uma_task", "omat"))
-    inference_settings = args.inference_settings or str(
-        cfg.get("inference_settings", "default")
-    )
-    if args.nvalchemi_batch is None:
-        nvalchemi_batch = bool(cfg.get("nvalchemi_batch", False))
-    else:
-        nvalchemi_batch = bool(args.nvalchemi_batch)
 
     atoms = atoms.copy()
     charge, multiplicity = formal_charge_and_multiplicity(atoms)
-    if method in ("uma", "nvalchemi-uma"):
+    if method == "gfn2-xtb":
+        from tblite.ase import TBLite
+
+        configure_gfn2_threads()
+        atoms.calc = TBLite(**gfn2_tblite_params(atoms, charge=charge))
+    else:
+        from fairchem.core import FAIRChemCalculator
+
         atoms = set_uma_spin_charge(atoms, charge=charge)
-    atoms.calc = build_calculator(
-        method,
-        atoms=atoms,
-        device=device,
-        uma_model=uma_model,
-        uma_task=uma_task,
-        inference_settings=inference_settings,
-        nvalchemi_batch=nvalchemi_batch,
-    )
+        atoms.calc = FAIRChemCalculator(
+            uma_predict_unit(model=uma_model, device=device, dtype=dtype, workers=1),
+            task_name=uma_task,
+        )
     energy = float(atoms.get_potential_energy())
 
     summary = {

@@ -22,9 +22,12 @@ from ase.optimize import LBFGS
 
 from energy import (
     CBMC_SUPPORTED,
-    build_calculator,
+    UMA_DEFAULTS,
+    configure_gfn2_threads,
     formal_charge_and_multiplicity,
+    gfn2_tblite_params,
     set_uma_spin_charge,
+    uma_predict_unit,
 )
 from lattice import (
     DEFAULT_ENDMEMBER_CATIONS,
@@ -41,17 +44,22 @@ def calculator_from_config(cfg: dict, *, atoms=None) -> Any:
         raise ValueError(
             f"energy method {method!r} not supported; choose from {CBMC_SUPPORTED}"
         )
-    return method, build_calculator(
-        method,
-        atoms=atoms,
-        device=str(cfg.get("device", "cuda")),
-        uma_model=str(
-            cfg.get("uma_model", "/mnt/d/workdir/uma-cache/uma-s-1p2.pt")
+    if method == "gfn2-xtb":
+        from tblite.ase import TBLite
+
+        configure_gfn2_threads()
+        return method, TBLite(**gfn2_tblite_params(atoms))
+
+    from fairchem.core import FAIRChemCalculator
+
+    return method, FAIRChemCalculator(
+        uma_predict_unit(
+            model=str(cfg.get("uma_model") or UMA_DEFAULTS["model"]),
+            device=str(cfg.get("device", "xpu")),
+            dtype=str(cfg.get("dtype", "float64")),
+            workers=int(cfg.get("uma_workers", 1)),
         ),
-        uma_task=str(cfg.get("uma_task", "omat")),
-        inference_settings=str(cfg.get("inference_settings", "default")),
-        nvalchemi_batch=bool(cfg.get("nvalchemi_batch", False)),
-        mace_model=cfg.get("mace_model"),
+        task_name=str(cfg.get("uma_task", "omat")),
     )
 
 
@@ -74,7 +82,7 @@ def optimize_cubic_rocksalt(
 
     atoms = build_rocksalt_supercell(anion, a0, supercell, cation=cation)
     formal_q, formal_m = formal_charge_and_multiplicity(atoms)
-    if method in ("uma", "nvalchemi-uma"):
+    if method == "uma":
         atoms = set_uma_spin_charge(atoms, charge=formal_q)
         charge = int(atoms.info["charge"])
         spin = int(atoms.info["spin"])  # always 0 (spin off)
@@ -175,8 +183,8 @@ def run_calibration(cfg: dict) -> dict:
             "a0_A": a0,
             "formal_charge": formal_q,
             "formal_spin": formal_m,
-            "uma_charge": q_use if method in ("uma", "nvalchemi-uma") else None,
-            "uma_spin": m_use if method in ("uma", "nvalchemi-uma") else None,
+            "uma_charge": q_use if method == "uma" else None,
+            "uma_spin": m_use if method == "uma" else None,
         }
         a_by_cation[cation] = a_opt
         log.info(
@@ -185,7 +193,7 @@ def run_calibration(cfg: dict) -> dict:
             a_opt,
             energy,
             energy / len(atoms),
-            m_use if method in ("uma", "nvalchemi-uma") else "n/a",
+            m_use if method == "uma" else "n/a",
         )
 
     composition = dict(cfg.get("cation_composition", {}))

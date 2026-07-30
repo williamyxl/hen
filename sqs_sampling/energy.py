@@ -1,4 +1,4 @@
-"""Energy calculators for MC SQS sampling: GFN2-xTB, UMA, nvalchemi-UMA, MACE."""
+"""Energy helpers for MC SQS: GFN2-xTB (TBLite) and FairChem UMA (Intel XPU)."""
 
 from __future__ import annotations
 
@@ -11,34 +11,19 @@ from typing import Any
 
 import numpy as np
 from ase import Atoms
-from ase.calculators.calculator import Calculator, all_changes
-from ase.optimize import LBFGS
-from ase.stress import full_3x3_to_voigt_6_stress
 
-SUPPORTED = ("gfn2-xtb", "uma", "nvalchemi-uma", "mace")
-# CBMC: GFN2 pool workers, or shared UMA / nvalchemi-UMA calculator
-CBMC_SUPPORTED = ("gfn2-xtb", "uma", "nvalchemi-uma")
+SUPPORTED = ("gfn2-xtb", "uma", "mace")
+CBMC_SUPPORTED = ("gfn2-xtb", "uma")
 
-# ---------------------------------------------------------------------------
-# Threading (process env; set before TBLite runs)
-# ---------------------------------------------------------------------------
 GFN2_OMP_NUM_THREADS = "1"
 GFN2_MKL_NUM_THREADS = "1"
 GFN2_OMP_STACKSIZE = "4G"
 
-# ---------------------------------------------------------------------------
-# Full TBLite ASE knobs (see tblite.ase.TBLite.default_parameters)
-# Edit here; build_gfn2_calculator(**overrides) can override any key.
-# mixer: "broyden" | "broyden:oda" | "broyden:mesa"  (no DIIS)
-# guess: "sad" | "eeq" | "eeqbc"
-# mixer_memory: 0 means use max_iterations
-# annealing: None | T0_K | (T0_K, hold, cycles)
-# spin_polarization: ignored (closed-shell TBLite path)
-# ---------------------------------------------------------------------------
+# TBLite ASE knobs (see tblite.ase.TBLite.default_parameters)
 GFN2_TBLITE: dict[str, Any] = {
     "method": "GFN2-xTB",
-    "charge": 0,  # filled from formal M3+/N3- unless overridden
-    "multiplicity": 1,  # always closed-shell for TBLite (spin ignored)
+    "charge": 0,
+    "multiplicity": 1,
     "accuracy": 1.0,
     "guess": "sad",
     "max_iterations": 1000,
@@ -47,7 +32,7 @@ GFN2_TBLITE: dict[str, Any] = {
     "mixer_damping": 0.4,
     "annealing": None,
     "electric_field": None,
-    "spin_polarization": None,  # kept off; TBLite path ignores open-shell spin
+    "spin_polarization": None,
     "solvation": None,
     "electronic_temperature": 300.0,
     "cache_api": True,
@@ -55,20 +40,17 @@ GFN2_TBLITE: dict[str, Any] = {
     "xtb_config": None,
 }
 
-# ---------------------------------------------------------------------------
-# UMA / FairChem defaults (edit here or override via config / CLI)
-# ---------------------------------------------------------------------------
+_HEN_ROOT = Path(__file__).resolve().parents[1]
+ALLOWED_UMA_CHECKPOINTS = frozenset({"uma-s-1p2.pt"})
 UMA_DEFAULTS: dict[str, Any] = {
-    "model": "/mnt/d/workdir/uma-cache/uma-s-1p2.pt",
+    "model": str(_HEN_ROOT / "uma-cache" / "uma-s-1p2.pt"),
     "task": "omat",
-    "device": "cuda",
-    # nvalchemi UMAWrapper: "default" | "turbo" (torch.compile; fixed composition)
-    "inference_settings": "default",
-    # batched multi-structure forwards (high VRAM); default off
-    "batch": False,
+    "device": "xpu",
+    "dtype": "float64",
 }
 
-# Formal M^{3+} / N^{3-} high-spin d counts (unpaired e^{-} per ion)
+UMA_SPIN_OFF = 0
+
 UNPAIRED_M3 = {
     "Ti": 1,
     "Zr": 1,
@@ -84,7 +66,66 @@ UNPAIRED_M3 = {
 }
 
 
-def _configure_gfn2_threads() -> None:
+def resolve_torch_dtype(dtype: str | Any | None = None) -> Any:
+    """Map config/CLI dtype name to torch.dtype; HEN FairChem requires float64."""
+    import torch
+
+    if dtype is None:
+        dtype = UMA_DEFAULTS["dtype"]
+    if isinstance(dtype, torch.dtype):
+        resolved = dtype
+    else:
+        key = str(dtype).strip().lower()
+        mapping = {
+            "float64": torch.float64,
+            "fp64": torch.float64,
+            "double": torch.float64,
+            "float32": torch.float32,
+            "fp32": torch.float32,
+        }
+        if key not in mapping:
+            raise ValueError(f"Unsupported dtype {dtype!r}")
+        resolved = mapping[key]
+    if resolved != torch.float64:
+        raise ValueError(
+            f"HEN FairChem inference requires float64/fp64; got {dtype!r}"
+        )
+    return resolved
+
+
+def assert_allowed_uma_checkpoint(model: str | Path) -> Path:
+    """Only allow uma-s-1p2.pt for this deployment."""
+    path = Path(model)
+    if path.suffix == ".pt" and path.name not in ALLOWED_UMA_CHECKPOINTS:
+        raise ValueError(
+            f"Checkpoint {path.name!r} is not allowed; "
+            f"use one of {sorted(ALLOWED_UMA_CHECKPOINTS)}"
+        )
+    return path
+
+
+def enforce_module_float64(module: Any) -> None:
+    """Cast parameters/buffers to FP64 and verify."""
+    import torch
+
+    if hasattr(module, "to"):
+        module.to(dtype=torch.float64)
+    bad: list[tuple[str, str]] = []
+    named_parameters = getattr(module, "named_parameters", None)
+    if callable(named_parameters):
+        for name, param in named_parameters():
+            if param.dtype != torch.float64:
+                bad.append((name, str(param.dtype)))
+    named_buffers = getattr(module, "named_buffers", None)
+    if callable(named_buffers):
+        for name, buf in named_buffers():
+            if torch.is_floating_point(buf) and buf.dtype != torch.float64:
+                bad.append((name, str(buf.dtype)))
+    if bad:
+        raise RuntimeError(f"Non-FP64 tensors after cast: {bad[:8]}")
+
+
+def configure_gfn2_threads() -> None:
     os.environ["OMP_NUM_THREADS"] = GFN2_OMP_NUM_THREADS
     os.environ["MKL_NUM_THREADS"] = GFN2_MKL_NUM_THREADS
     os.environ["OMP_STACKSIZE"] = GFN2_OMP_STACKSIZE
@@ -114,7 +155,6 @@ def gfn2_tblite_params(
     **overrides: Any,
 ) -> dict[str, Any]:
     """Merge GFN2_TBLITE defaults and formal charge. Spin multiplicity is ignored."""
-    # Drop spin knobs if callers pass them; TBLite path is closed-shell only
     overrides.pop("multiplicity", None)
     overrides.pop("spin_polarization", None)
 
@@ -128,7 +168,6 @@ def gfn2_tblite_params(
     if charge is not None:
         params["charge"] = charge
 
-    # Force closed shell regardless of formal high-spin estimate
     params["multiplicity"] = 1
     params["spin_polarization"] = None
 
@@ -138,19 +177,12 @@ def gfn2_tblite_params(
     return params
 
 
-# FairChem materials default: spin off (see fairchem DEFAULT_SPIN = 0)
-UMA_SPIN_OFF = 0
-
-
 def set_uma_spin_charge(
     atoms: Atoms,
     *,
     charge: int | None = None,
 ) -> Atoms:
-    """Set FairChem ``atoms.info`` charge; spin is turned off (``spin=0``).
-
-    Formal high-spin multiplicity is recorded as ``formal_spin`` but not used.
-    """
+    """Set FairChem ``atoms.info`` charge; spin is turned off (``spin=0``)."""
     atoms = atoms.copy()
     formal_q, formal_m = formal_charge_and_multiplicity(atoms)
     atoms.info["formal_charge"] = int(formal_q)
@@ -160,156 +192,90 @@ def set_uma_spin_charge(
     return atoms
 
 
-def build_gfn2_calculator(
-    atoms: Atoms | None = None,
+def assert_single_tile_xpu() -> None:
+    """Require FLAT + one visible tile for single-tile UMA on XPU."""
+    import torch
+
+    if not (hasattr(torch, "xpu") and torch.xpu.is_available()):
+        raise RuntimeError("torch.xpu is not available for single-tile UMA")
+    n = int(torch.xpu.device_count())
+    if n != 1:
+        raise RuntimeError(
+            f"Single-tile UMA expects 1 visible XPU (ZE_AFFINITY_MASK); got {n}. "
+            "Set ZE_FLAT_DEVICE_HIERARCHY=FLAT and ZE_AFFINITY_MASK=<tile>."
+        )
+
+
+def uma_predict_unit(
     *,
-    charge: int | None = None,
-    **overrides: Any,
-) -> Any:
-    """TBLite GFN2-xTB using GFN2_TBLITE (+ optional overrides). Spin ignored."""
-    _configure_gfn2_threads()
-    from tblite.ase import TBLite
-
-    return TBLite(**gfn2_tblite_params(atoms, charge=charge, **overrides))
-
-
-def build_uma_calculator(
-    *,
-    model: str | None = None,
-    task: str | None = None,
+    model: str | Path | None = None,
     device: str | None = None,
+    dtype: str | Any | None = None,
+    workers: int = 1,
 ) -> Any:
-    """FairChem UMA ASE calculator from a local .pt path or pretrained name."""
-    from fairchem.core import FAIRChemCalculator
+    """Return a FairChem ``MLIPPredictUnit`` (W=1) or ``ParallelMLIPPredictUnit`` (W≥2).
 
-    model = model or UMA_DEFAULTS["model"]
-    task = task or UMA_DEFAULTS["task"]
-    device = device or UMA_DEFAULTS["device"]
-    return FAIRChemCalculator.from_model_checkpoint(
-        model, task_name=task, device=device
-    )
-
-
-class NvalchemiUMACalculator(Calculator):
-    """ASE calculator over NVIDIA ``nvalchemi.models.uma.UMAWrapper``.
-
-    Uses tensor-native UMA inference from
-    https://github.com/NVIDIA/nvalchemi-toolkit (built on
-    https://github.com/NVIDIA/nvalchemi-toolkit-ops). CBMC calls
-    :meth:`energies`; batching is off by default (``batch=False``).
+    Callers wrap with ``FAIRChemCalculator(unit, task_name=...)``.
     """
+    from dataclasses import replace
 
-    implemented_properties = ["energy", "free_energy", "forces", "stress"]
+    from fairchem.core.units.mlip_unit.api.inference import guess_inference_settings
+    from fairchem.core.units.mlip_unit.predict import MLIPPredictUnit
 
-    def __init__(
-        self,
-        wrapper: Any,
-        *,
-        device: str = "cuda",
-        batch: bool = False,
-    ) -> None:
-        super().__init__()
-        self.wrapper = wrapper
-        self.device = device
-        self.batch = bool(batch)
-
-    def calculate(
-        self,
-        atoms: Atoms | None = None,
-        properties: list[str] | None = None,
-        system_changes: list[str] = all_changes,
-    ) -> None:
-        from nvalchemi.data import AtomicData, Batch
-
-        if properties is None:
-            properties = ["energy"]
-        Calculator.calculate(self, atoms, properties, system_changes)
-        assert atoms is not None
-        atoms = set_uma_spin_charge(atoms)
-        data = AtomicData.from_atoms(atoms)
-        batch = Batch.from_data_list([data])
-        if hasattr(batch, "to"):
-            batch = batch.to(self.device)
-
-        # Request only what ASE asked for (energy-only SPE avoids force autograd)
-        want = set(properties)
-        active = {"energy"}
-        if "forces" in want:
-            active.add("forces")
-        if "stress" in want or any(k.startswith("stress") for k in want):
-            active.add("stress")
-        prev = self.wrapper.model_config.active_outputs
-        self.wrapper.model_config.active_outputs = frozenset(active)
-        try:
-            out = self.wrapper(batch)
-        finally:
-            self.wrapper.model_config.active_outputs = prev
-
-        energy = float(out["energy"].detach().cpu().reshape(-1)[0].item())
-        self.results["energy"] = energy
-        self.results["free_energy"] = energy
-        if "forces" in out:
-            self.results["forces"] = (
-                out["forces"].detach().cpu().numpy().astype(float)
-            )
-        if "stress" in out:
-            stress = out["stress"].detach().cpu().numpy().reshape(3, 3)
-            self.results["stress"] = full_3x3_to_voigt_6_stress(stress)
-
-    def energies(self, atoms_list: list[Atoms]) -> list[float]:
-        """Single-points; batched only if ``self.batch`` is True."""
-        if not atoms_list:
-            return []
-        if not self.batch:
-            out: list[float] = []
-            for atoms in atoms_list:
-                a = atoms.copy()
-                a.calc = self
-                out.append(float(a.get_potential_energy()))
-            return out
-
-        from nvalchemi.data import AtomicData, Batch
-
-        datas = [AtomicData.from_atoms(set_uma_spin_charge(a)) for a in atoms_list]
-        batch = Batch.from_data_list(datas)
-        if hasattr(batch, "to"):
-            batch = batch.to(self.device)
-        prev = self.wrapper.model_config.active_outputs
-        self.wrapper.model_config.active_outputs = frozenset({"energy"})
-        try:
-            pred = self.wrapper(batch)
-        finally:
-            self.wrapper.model_config.active_outputs = prev
-        return [
-            float(x)
-            for x in pred["energy"].detach().cpu().reshape(-1).tolist()
-        ]
-
-
-def build_nvalchemi_uma_calculator(
-    *,
-    model: str | None = None,
-    task: str | None = None,
-    device: str | None = None,
-    inference_settings: str | None = None,
-    batch: bool | None = None,
-) -> NvalchemiUMACalculator:
-    """NVIDIA nvalchemi ``UMAWrapper`` ASE calculator (batching off by default)."""
-    from nvalchemi.models.uma import UMAWrapper
-
-    model = model or UMA_DEFAULTS["model"]
-    task = task or UMA_DEFAULTS["task"]
+    model_path = assert_allowed_uma_checkpoint(model or UMA_DEFAULTS["model"])
+    if not model_path.is_file():
+        raise FileNotFoundError(f"UMA checkpoint not found: {model_path}")
     device = device or UMA_DEFAULTS["device"]
-    inference_settings = inference_settings or UMA_DEFAULTS["inference_settings"]
-    if batch is None:
-        batch = bool(UMA_DEFAULTS["batch"])
-    wrapper = UMAWrapper.from_checkpoint(
-        model,
-        task_name=task,
-        device=device,
-        inference_settings=inference_settings,
+    device_key = str(device).strip().lower()
+    if device_key.startswith("cuda"):
+        raise ValueError(
+            "HEN is Intel XPU–only; refuse device="
+            f"{device!r}. Use device='xpu' (or 'cpu' for debug)."
+        )
+    torch_dtype = resolve_torch_dtype(dtype)
+    n_workers = int(workers)
+    if n_workers < 1:
+        raise ValueError(f"workers must be >= 1, got {n_workers}")
+
+    settings = guess_inference_settings("default")
+    settings = replace(
+        settings,
+        base_precision_dtype=torch_dtype,
+        tf32=False,
+        compile=False,
     )
-    return NvalchemiUMACalculator(wrapper, device=device, batch=batch)
+
+    if n_workers == 1:
+        if device_key.startswith("xpu"):
+            from fairchem_xpu_parallel import patch_fairchem_xpu_device
+
+            assert_single_tile_xpu()
+            patch_fairchem_xpu_device()
+        unit = MLIPPredictUnit(
+            str(model_path),
+            device=device,
+            inference_settings=settings,
+        )
+    else:
+        from fairchem.core.units.mlip_unit.predict import ParallelMLIPPredictUnit
+        from fairchem_xpu_parallel import patch_fairchem_xpu_parallel
+
+        if device_key.startswith("xpu"):
+            patch_fairchem_xpu_parallel()
+        unit = ParallelMLIPPredictUnit(
+            str(model_path),
+            device=device,
+            inference_settings=settings,
+            num_workers=n_workers,
+            num_workers_per_node=max(n_workers, 12),
+        )
+
+    for attr in ("model", "module", "_module"):
+        mod = getattr(unit, attr, None)
+        if mod is not None:
+            enforce_module_float64(mod)
+            break
+    return unit
 
 
 def atoms_to_payload(atoms: Atoms) -> tuple:
@@ -327,12 +293,12 @@ def atoms_to_payload(atoms: Atoms) -> tuple:
 
 def gfn2_energy_payload(payload: tuple) -> float:
     """Worker entry: one TBLite GFN2-xTB single-point (1 OMP thread)."""
+    from tblite.ase import TBLite
+
     symbols, positions, cell, pbc, tags, params = payload
     atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=pbc)
     atoms.set_tags(tags)
-    _configure_gfn2_threads()
-    from tblite.ase import TBLite
-
+    configure_gfn2_threads()
     atoms.calc = TBLite(**params)
     return float(atoms.get_potential_energy())
 
@@ -347,27 +313,6 @@ def evaluate_gfn2_parallel(atoms_list: list[Atoms], pool: Pool) -> list[float]:
     return list(async_result.get())
 
 
-def evaluate_with_calculator(
-    atoms_list: list[Atoms],
-    calc: Any,
-    *,
-    method: str = "uma",
-) -> list[float]:
-    """Single-points with a shared calculator (UMA / nvalchemi-UMA / MACE)."""
-    key = method.strip().lower()
-    if key == "nvalchemi-uma":
-        if not isinstance(calc, NvalchemiUMACalculator):
-            raise TypeError("nvalchemi-uma requires NvalchemiUMACalculator")
-        return calc.energies(atoms_list)
-
-    energies: list[float] = []
-    for atoms in atoms_list:
-        a = set_uma_spin_charge(atoms) if key == "uma" else atoms.copy()
-        a.calc = calc
-        energies.append(float(a.get_potential_energy()))
-    return energies
-
-
 def evaluate_energies(
     atoms_list: list[Atoms],
     method: str,
@@ -375,76 +320,19 @@ def evaluate_energies(
     pool: Pool | None = None,
     calc: Any | None = None,
 ) -> list[float]:
-    """Dispatch energy evaluations for CBMC / smoke tests.
-
-    gfn2-xtb: multiprocess Pool (requires ``pool``); closed-shell (spin ignored).
-    uma: shared FairChem ASE calculator (``spin=0``).
-    nvalchemi-uma: NVIDIA UMAWrapper (``spin=0``; batching off unless enabled).
-    mace: shared ASE calculator (no spin tags).
-    """
+    """Dispatch energy evaluations for CBMC / smoke tests."""
     key = method.strip().lower()
     if key == "gfn2-xtb":
         if pool is None:
             raise ValueError("gfn2-xtb parallel eval requires a multiprocessing Pool")
         return evaluate_gfn2_parallel(atoms_list, pool)
-    if key in ("uma", "nvalchemi-uma", "mace"):
-        if calc is None:
-            raise ValueError(f"{key} eval requires a shared ASE calculator")
-        return evaluate_with_calculator(atoms_list, calc, method=key)
-    raise ValueError(f"Unknown energy method {method!r}; choose from {SUPPORTED}")
-
-
-def build_calculator(
-    method: str,
-    *,
-    atoms: Atoms | None = None,
-    device: str = "cuda",
-    uma_model: str = "/mnt/d/workdir/uma-cache/uma-s-1p2.pt",
-    uma_task: str = "omat",
-    inference_settings: str = "default",
-    nvalchemi_batch: bool = False,
-    mace_model: str | None = None,
-    **gfn2_overrides: Any,
-) -> Any:
-    """Return an ASE calculator for the requested energy method."""
-    key = method.strip().lower()
-    if key not in SUPPORTED:
-        raise ValueError(f"Unknown energy method {method!r}; choose from {SUPPORTED}")
-
-    if key == "gfn2-xtb":
-        gfn2_overrides.pop("multiplicity", None)
-        return build_gfn2_calculator(atoms=atoms, **gfn2_overrides)
-
     if key == "uma":
-        return build_uma_calculator(model=uma_model, task=uma_task, device=device)
-
-    if key == "nvalchemi-uma":
-        return build_nvalchemi_uma_calculator(
-            model=uma_model,
-            task=uma_task,
-            device=device,
-            inference_settings=inference_settings,
-            batch=nvalchemi_batch,
-        )
-
-    if not mace_model:
-        raise ValueError("MACE requires mace_model path (--mace-model or config mace_model)")
-    from mace.calculators import MACECalculator
-
-    return MACECalculator(model_paths=str(Path(mace_model)), device=device)
-
-
-def evaluate_energy(
-    atoms: Atoms,
-    calc: Any,
-    *,
-    relax: bool = False,
-    fmax: float = 0.05,
-    steps: int = 20,
-) -> float:
-    """Attach calculator, optionally relax ions, return potential energy (eV)."""
-    atoms = atoms.copy()
-    atoms.calc = calc
-    if relax:
-        LBFGS(atoms, logfile=None).run(fmax=fmax, steps=steps)
-    return float(atoms.get_potential_energy())
+        if calc is None:
+            raise ValueError("uma eval requires a shared FAIRChemCalculator")
+        energies: list[float] = []
+        for atoms in atoms_list:
+            a = set_uma_spin_charge(atoms)
+            a.calc = calc
+            energies.append(float(a.get_potential_energy()))
+        return energies
+    raise ValueError(f"Unknown energy method {method!r}; choose from {CBMC_SUPPORTED}")

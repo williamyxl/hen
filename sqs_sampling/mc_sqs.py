@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Configurationally biased MC SQS sampling with GFN2-xTB / UMA / nvalchemi-UMA.
+"""Configurationally biased MC SQS sampling with GFN2-xTB or FairChem UMA (Intel XPU).
 
 Each step proposes cbmc_trials concurrent cation swaps, evaluates them
-(GFN2: multiprocess Pool; UMA / nvalchemi-uma: shared calculator; nvalchemi
-batching off by default), selects a trial with Rosenbluth weights, and
-accepts with min(1, W_new / W_old).
+(GFN2: multiprocess Pool; UMA: shared FairChem calculator), selects a trial with
+Rosenbluth weights, and accepts with min(1, W_new / W_old).
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
+import shutil
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Any
@@ -22,9 +22,11 @@ from ase.io import write
 
 from energy import (
     CBMC_SUPPORTED,
-    build_calculator,
     evaluate_energies,
     formal_charge_and_multiplicity,
+    configure_gfn2_threads,
+    UMA_DEFAULTS,
+    uma_predict_unit,
 )
 from calibrate_lattice import resolve_lattice_constant
 from lattice import (
@@ -85,6 +87,45 @@ def load_config(path: Path) -> dict:
         )
     cfg["energy"] = method
     return cfg
+
+
+def prepare_run_directory(cfg: dict, *, config_path: Path | None = None) -> Path:
+    """Point all outputs into an existing ``run_dir`` (caller creates the folder).
+
+    Layout (written into the given directory)::
+
+        run_dir/
+          config.yaml            # resolved config snapshot
+          config_input.yaml      # copy of the CLI config (if provided)
+          mc_sqs.log
+          mc_trajectory.extxyz
+          sqs_000.extxyz …
+          sqs.extxyz
+
+    ``run_dir`` is required (CLI ``--run-dir`` or config ``run_dir``). Legacy
+    ``output_dir`` is accepted as an alias when ``run_dir`` is unset.
+    """
+    raw = cfg.get("run_dir") or cfg.get("output_dir")
+    if not raw:
+        raise ValueError("run_dir is required (--run-dir or config run_dir)")
+    run_dir = Path(raw)
+    if not run_dir.is_dir():
+        raise FileNotFoundError(f"run_dir does not exist: {run_dir}")
+
+    cfg["run_dir"] = str(run_dir)
+    cfg["output_dir"] = str(run_dir)
+    cfg["trajectory_file"] = str(run_dir / "mc_trajectory.extxyz")
+    cfg["log_file"] = str(run_dir / "mc_sqs.log")
+
+    if config_path is not None and config_path.is_file():
+        shutil.copy2(config_path, run_dir / "config_input.yaml")
+
+    snapshot = {k: v for k, v in cfg.items()}
+    (run_dir / "config.yaml").write_text(
+        yaml.safe_dump(snapshot, sort_keys=False),
+        encoding="utf-8",
+    )
+    return run_dir
 
 
 def build_initial(cfg: dict, rng: np.random.Generator) -> Atoms:
@@ -159,9 +200,9 @@ def cbmc_step(
     return atoms, energy, False, w_new, w_old
 
 
-def run_mc(cfg: dict) -> None:
+def run_mc(cfg: dict, *, config_path: Path | None = None) -> Path:
+    run_dir = prepare_run_directory(cfg, config_path=config_path)
     out_dir = Path(cfg["output_dir"])
-    out_dir.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(message)s",
@@ -169,6 +210,7 @@ def run_mc(cfg: dict) -> None:
         force=True,
     )
     log = logging.getLogger("mc_sqs")
+    log.info("run_dir=%s", run_dir)
 
     n_trials = int(cfg.get("cbmc_trials", DEFAULT_CBMC_TRIALS))
     if n_trials < 2:
@@ -182,6 +224,11 @@ def run_mc(cfg: dict) -> None:
     method = cfg["energy"]
     rng = np.random.default_rng(int(cfg["seed"]))
     atoms = build_initial(cfg, rng)
+    # Persist resolved lattice constant into the run snapshot.
+    (run_dir / "config.yaml").write_text(
+        yaml.safe_dump(cfg, sort_keys=False),
+        encoding="utf-8",
+    )
     sro_cutoff = float(cfg["sro_cutoff"])
     sro_edges = [float(x) for x in cfg["sro_shell_edges"]]
     n_steps = int(cfg["n_steps"])
@@ -193,45 +240,56 @@ def run_mc(cfg: dict) -> None:
         traj_path.unlink()
 
     charge, _multiplicity = formal_charge_and_multiplicity(atoms)
-    calc = None
-    if method != "gfn2-xtb":
-        calc = build_calculator(
-            method,
-            atoms=atoms,
-            device=str(cfg.get("device", "cuda")),
-            uma_model=str(
-                cfg.get("uma_model", "/mnt/d/workdir/uma-cache/uma-s-1p2.pt")
-            ),
-            uma_task=str(cfg.get("uma_task", "omat")),
-            inference_settings=str(
-                cfg.get("inference_settings", "default")
-            ),
-            nvalchemi_batch=bool(cfg.get("nvalchemi_batch", False)),
-            mace_model=cfg.get("mace_model"),
+    uma_workers = int(cfg.get("uma_workers", 1))
+    if method == "uma" and uma_workers != 1:
+        raise ValueError(
+            f"mc_sqs single-structure CBMC requires uma_workers=1 (got {uma_workers}); "
+            "multi-tile UMA is not wired into CBMC yet"
         )
+    calc = None
+    if method == "gfn2-xtb":
+        configure_gfn2_threads()
+    elif method == "uma":
+        from fairchem.core import FAIRChemCalculator
+
+        calc = FAIRChemCalculator(
+            uma_predict_unit(
+                model=str(cfg.get("uma_model") or UMA_DEFAULTS["model"]),
+                device=str(cfg.get("device", "xpu")),
+                dtype=str(cfg.get("dtype", "float64")),
+                workers=uma_workers,
+            ),
+            task_name=str(cfg.get("uma_task", "omat")),
+        )
+    else:
+        raise ValueError(f"Unsupported CBMC energy method {method!r}")
 
     def _run(pool: Pool | None) -> None:
         nonlocal atoms
         e = _eval([atoms], method=method, pool=pool, calc=calc)[0]
         score = sqs_correlation_score(atoms, sro_cutoff, sro_edges)
-        if method in ("uma", "nvalchemi-uma"):
+        if method == "uma":
             spin_note = "uma_spin=0 (off)"
         else:
             spin_note = "tblite_spin=ignored(mult=1)"
         log.info(
-            "start %s energy=%s supercell=%s a=%.6f Å CBMC trials=%d charge=%d %s "
-            "E=%.6f eV |alpha|=%.4f T=%s K steps=%s",
+            "start %s energy=%s supercell=%s a=%.6f Å CBMC trials=%d "
+            "uma_workers=%s device=%s charge=%d %s "
+            "E=%.6f eV |alpha|=%.4f T=%s K steps=%s run_dir=%s",
             composition_string(atoms),
             method,
             list(cfg.get("supercell", [])),
             float(cfg["a"]) if cfg.get("a") is not None else float("nan"),
             n_trials,
+            uma_workers if method == "uma" else "n/a",
+            cfg.get("device", "n/a"),
             charge,
             spin_note,
             e,
             score,
             temperature_k,
             n_steps,
+            run_dir,
         )
 
         accepted = 0
@@ -307,12 +365,14 @@ def run_mc(cfg: dict) -> None:
             )
         write(out_dir / "sqs.extxyz", written, format="extxyz")
         log.info("wrote %s (%d frames, CBMC order)", out_dir / "sqs.extxyz", len(written))
+        log.info("finished run_dir=%s", run_dir)
 
     if method == "gfn2-xtb":
         with Pool(processes=n_trials) as pool:
             _run(pool)
     else:
         _run(None)
+    return run_dir
 
 
 def main() -> None:
@@ -320,8 +380,25 @@ def main() -> None:
         description="Rosenbluth CBMC SQS sampling (GFN2-xTB or UMA)"
     )
     parser.add_argument("--config", type=Path, default=Path("config.yaml"))
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Override config seed (for independent parallel runs)",
+    )
+    parser.add_argument(
+        "--run-dir",
+        type=Path,
+        required=True,
+        help="Existing directory for this run's outputs (log, traj, sqs frames)",
+    )
     args = parser.parse_args()
-    run_mc(load_config(args.config))
+    cfg = load_config(args.config)
+    if args.seed is not None:
+        cfg["seed"] = int(args.seed)
+    cfg["run_dir"] = str(args.run_dir)
+    run_dir = run_mc(cfg, config_path=args.config)
+    print(f"run_dir={run_dir}")
 
 
 if __name__ == "__main__":
