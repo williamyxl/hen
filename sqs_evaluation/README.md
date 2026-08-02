@@ -1,21 +1,58 @@
-# SQS evaluation templates
+# SQS / structure evaluation
 
-Inputs for a small set of SQS structures from [`sqs_sampling/final_sqs/`](../sqs_sampling/final_sqs/) (`.extxyz`).
+Property-oriented evaluation of SQS `.extxyz` with a **pluggable energy model**.
 
-Python drivers take CLI args (no silent defaults for calculators). Missing files, failed relaxations, and incomplete samples raise exceptions.
+**Default energy model: FairChem UMA** (`uma-s-1p2.pt`, Intel XPU).
 
-| Dir | Simulation | Energy method | Target properties |
-|---|---|---|---|
-| `01_sro/` | SRO analysis | None | §4 Warren–Cowley, pair correlations |
-| `02_endmember_cp2k/` | End-member cell+ion relax | CP2K DFT | §1 Mixing enthalpy baseline |
-| `03_relax_ase_mlip/` | Alloy ion±cell relax | ASE + MLIP (`--energy`) | §1 \(E\), \(\Delta H_\mathrm{mix}\) |
-| `04_relax_lammps_mace/` | Alloy ion±cell relax | LAMMPS + MACE | §1 \(E\), \(\Delta H_\mathrm{mix}\) |
-| `05_validate_cp2k/` | Alloy relax / SP validation | CP2K DFT | §1 DFT \(E\), \(\Delta H_\mathrm{mix}\) |
-| `06_lld/` | LLD on relaxed `.extxyz` | None (ASE) | §3 bond/NN/RMSD/strain |
-| `07_elastic_ase_mlip/` | Finite-strain elastic | ASE + MLIP (`--energy`) | §2 \(C_{ij}\), \(B\), \(G\), \(E\), \(\nu\) |
-| `08_elastic_lammps_mace/` | Finite-strain elastic | LAMMPS + MACE | §2 \(C_{ij}\), \(B\), \(G\), \(E\), \(\nu\) |
-| `09_elastic_cp2k/` | Finite-strain elastic | CP2K DFT | §2 DFT \(C_{ij}\) + derived |
+```text
+.extxyz ──► energy_models/ (uma | mace | gfn2_* | cp2k_dft | siesta)
+                 │
+                 ▼
+         simulations/  (sro, cell_opt, formation_enthalpy, lld, elastic, eos, dos)
+```
 
-CP2K inputs are generated from `.extxyz` via `02_endmember_cp2k/make_cp2k_input.py` (no hand-pasted COORD).
+CP2K is an **energy model**, not a property. Its input writers live under
+`energy_models/cp2k/`; elastic strains that also emit CP2K inputs are still the
+`elastic` simulation (`simulations/elastic/make_cp2k_strains.py`).
 
-Suggested order: `01` → `03`/`04` → `06` → `07`/`08` → validate with `02`+`05`+`09`.
+## Layout
+
+```text
+sqs_evaluation/
+  run_workflow.py
+  configs/default.yaml
+  energy_models/
+    uma.py, mace.py, gfn2_*.py, cp2k_dft.py, siesta.py
+    cp2k/                  # CP2K input helpers for cp2k_dft / gfn2_cp2k
+  simulations/
+    registry.py
+    sro/, cell_opt/, formation_enthalpy/, lld/, elastic/, eos/, dos/
+  docs/architecture.md
+```
+
+## Quick start (UMA default)
+
+```bash
+cd sqs_evaluation
+python simulations/cell_opt/build_elemental_refs.py --energy uma --device xpu \
+  --out elemental_refs.json
+python run_workflow.py --structures path/to/sqs.extxyz --config configs/default.yaml
+```
+
+## Energy models vs simulations
+
+| Energy model | Role |
+|---|---|
+| `uma` (default) | FairChem UMA ASE calculator |
+| `mace` | MACE ASE calculator |
+| `gfn2_tblite` / `gfn2_cp2k` | GFN2-xTB (TBLite or CP2K) |
+| `cp2k_dft` | CP2K DFT (XC + basis + dispersion) |
+| `siesta` | Siesta DFT |
+
+| Simulation | Needs energy model? |
+|---|---|
+| `sro`, `lld` | No (geometry) |
+| `cell_opt`, `formation_enthalpy`, `elastic`, `eos` | Yes |
+| `dos` | DFT backends only |
+
+See [`docs/architecture.md`](docs/architecture.md).

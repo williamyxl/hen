@@ -1,0 +1,51 @@
+# Default HEN structure-evaluation config.
+# Energy model defaults to FairChem UMA (Intel XPU). Swap energy.model to use
+# mace | gfn2_tblite | gfn2_cp2k | cp2k_dft | siesta (some are scaffolds).
+
+energy:
+  model: uma
+  device: xpu
+  dtype: float64
+  uma_model: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt
+  uma_task: omat
+  uma_workers: 1
+
+# Property-oriented simulations to run (in order).
+properties:
+  - sro
+  - cell_opt
+  - formation_enthalpy
+  - lld
+  - elastic
+  # - eos
+  # - dos          # requires cp2k_dft or siesta
+
+property_options:
+  cell_opt:
+    fmax: 0.01
+    steps: 500
+    relax_cell: true
+
+  formation_enthalpy:
+    # Build once: python simulations/cell_opt/build_elemental_refs.py --energy uma ...
+    elemental_eref: null
+
+  sro:
+    cutoff: 3.5
+    shell_edges: [0.0, 2.6, 3.5]
+
+  lld:
+    a_ref: 4.484538475263075
+    cutoff: 3.2
+    bond_pairs: ["Ti-N", "Zr-N", "Hf-N", "Nb-N", "Ta-N"]
+    # ideal: null  → use input structures as ideal vs cell_opt result
+
+  elastic:
+    strains: [-0.01, -0.005, 0.005, 0.01]
+    fmax: 0.01
+    steps: 200
+
+  eos:
+    volumes_scale: [0.94, 0.96, 0.98, 1.00, 1.02, 1.04, 1.06]
+
+# out_dir: workflow_out/my_run   # optional; else workflow_out/eval_<UTC stamp>

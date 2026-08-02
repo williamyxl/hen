@@ -11,15 +11,16 @@ import numpy as np
 from ase.io import read, write
 from ase.optimize import LBFGS
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]  # hen/
 sys.path.insert(0, str(ROOT / "sqs_sampling"))
 from energy import (  # noqa: E402
-    SUPPORTED,
     UMA_DEFAULTS,
     configure_gfn2_threads,
     gfn2_tblite_params,
     uma_predict_unit,
 )
+
+EVAL_ENERGY = ("gfn2-xtb", "uma")
 
 EV_A3_TO_GPA = 160.21766208
 
@@ -48,13 +49,7 @@ def make_calc(args: argparse.Namespace):
             ),
             task_name=args.uma_task,
         )
-    if args.energy == "mace":
-        if not args.mace_model:
-            raise ValueError("MACE requires --mace-model")
-        from mace.calculators import MACECalculator
-
-        return MACECalculator(model_paths=str(Path(args.mace_model)), device=args.device)
-    raise ValueError(f"Unknown energy method {args.energy!r}; choose from {SUPPORTED}")
+    raise ValueError(f"Unknown energy method {args.energy!r}; choose from {EVAL_ENERGY}")
 
 
 def vrh_cubic(c11, c12, c44):
@@ -80,13 +75,12 @@ def main() -> None:
     parser.add_argument(
         "--structures",
         type=Path,
-        default=Path("../03_relax_ase_mlip/relaxed/all_relaxed.extxyz"),
+        default=Path("../cell_opt/relaxed/all_relaxed.extxyz"),
     )
     parser.add_argument("--out-dir", type=Path, default=Path("strained"))
-    parser.add_argument("--energy", choices=SUPPORTED, required=True)
+    parser.add_argument("--energy", choices=EVAL_ENERGY, required=True)
     parser.add_argument("--device", default="xpu")
     parser.add_argument("--dtype", default="float64")
-    parser.add_argument("--mace-model", default=None)
     parser.add_argument(
         "--uma-model",
         default="/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",

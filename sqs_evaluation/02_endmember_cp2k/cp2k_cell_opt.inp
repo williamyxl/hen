@@ -1,9 +1,0 @@
-! Template placeholder replaced by generated inputs.
-! Build a ready-to-run file from .extxyz:
-!
-!   python make_cp2k_input.py \
-!     --structure ../../sqs_sampling/final_sqs/endmember_TiN.extxyz \
-!     --out endmember_TiN.inp \
-!     --run-type CELL_OPT
-!
-! Then: cp2k.psmp -i endmember_TiN.inp

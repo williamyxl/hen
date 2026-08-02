@@ -58,7 +58,7 @@ def main() -> None:
     parser.add_argument(
         "--relaxed",
         type=Path,
-        default=Path("../03_relax_ase_mlip/relaxed/all_relaxed.extxyz"),
+        default=Path("../cell_opt/relaxed/all_relaxed.extxyz"),
     )
     parser.add_argument("--ideal", type=Path, required=True)
     parser.add_argument("--cutoff", type=float, default=3.2)

@@ -1,0 +1,10 @@
+# CP2K is an energy model (see energy_models/cp2k_dft.py, gfn2_cp2k.py).
+# This package only holds input writers used by that backend.
+#
+# Cell / single-point inputs:
+#   python -m energy_models.cp2k.make_cp2k_input \
+#     --structure path/to/frame.extxyz --out job.inp --project job --run-type CELL_OPT|ENERGY
+#
+# Elastic strains + CP2K GEO_OPT inputs (property = elastic, backend = cp2k):
+#   python simulations/elastic/make_cp2k_strains.py \
+#     --structure ../cell_opt/relaxed/sqs_000_relaxed.extxyz --out-dir strained_extxyz

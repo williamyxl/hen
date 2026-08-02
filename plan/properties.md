@@ -1,13 +1,14 @@
 # Target Properties
 
-## 1. Total energy / Mixing enthalpy
+## 1. Total energy / Mixing enthalpy / Formation enthalpy
 
 Primary metric.
 
 ### Measurements
 
 - Total energy
-- Mixing enthalpy
+- Mixing enthalpy (vs rocksalt MN end-members)
+- Formation enthalpy (vs elemental metals + ½ N₂)
 - Distribution of energies
 - Mean ± standard deviation
 - Convergence vs number of sampled configurations
@@ -18,6 +19,10 @@ Primary metric.
 - Demonstrates ensemble convergence
 - Shows sampling efficiency
 
+Formation enthalpy uses elemental references from
+[`sqs_evaluation/simulations/cell_opt/build_elemental_refs.py`](../sqs_evaluation/simulations/cell_opt/build_elemental_refs.py)
+(μ_M from bulk metal; μ_N = E(N₂)/2). At fixed composition, ranking by
+\(E\), \(\Delta H_\mathrm{mix}\), or \(\Delta H_f\) differs only by a constant.
 ## 2. Elastic properties
 
 Compute the full elastic tensor.
