@@ -7,6 +7,19 @@ binds one PVC tile via ZE_AFFINITY_MASK and uses XCCL (else gloo).
 
 from __future__ import annotations
 
+
+import sys
+from pathlib import Path as _Path
+_scripts = _Path(__file__).resolve().parents[1] / "scripts"
+if str(_scripts) not in sys.path:
+    sys.path.insert(0, str(_scripts))
+
+try:
+    from fxpu_env_compat import apply_hen_to_fxpu_env_compat
+    apply_hen_to_fxpu_env_compat()
+except ImportError:
+    pass
+
 import logging
 import math
 import os
@@ -21,7 +34,7 @@ log = logging.getLogger(__name__)
 _DEVICE_PATCHED = False
 _WORKER_PATCHED = False
 _PARALLEL_PATCHED = False
-_HenXPUMLIPWorker = None
+_FxpuXPUMLIPWorker = None
 
 # Phase-0 collective / predict stage timers (process-local; reset per SPE)
 _stats_lock = threading.Lock()
@@ -80,7 +93,7 @@ def _patch_edgewise_gather_inside_checkpoint() -> None:
     from fairchem.core.common import gp_utils
     from fairchem.core.models.uma import escn_md_block as block_mod
 
-    if getattr(block_mod, "_hen_edgewise_gather_in_ckpt_patched", False):
+    if getattr(block_mod, "_fxpu_edgewise_gather_in_ckpt_patched", False):
         return
 
     Edgewise = block_mod.Edgewise
@@ -174,10 +187,10 @@ def _patch_edgewise_gather_inside_checkpoint() -> None:
         return torch.stack(new_embeddings).sum(axis=0)
 
     Edgewise.forward = forward  # type: ignore[method-assign]
-    block_mod._hen_edgewise_gather_in_ckpt_patched = True
+    block_mod._fxpu_edgewise_gather_in_ckpt_patched = True
     log.info(
-        "HEN Edgewise patch: GP gather inside activation checkpoint "
-        "(marker=hen_gather_in_ckpt_v1)"
+        "FXPU Edgewise patch: GP gather inside activation checkpoint "
+        "(marker=fxpu_gather_in_ckpt_v1)"
     )
 
 
@@ -198,7 +211,7 @@ def _patch_force_autograd_for_gp() -> None:
 
     _patch_edgewise_gather_inside_checkpoint()
 
-    if getattr(uma_outputs, "_hen_force_autograd_patched", False):
+    if getattr(uma_outputs, "_fxpu_force_autograd_patched", False):
         return
 
     def compute_forces(energy_part, pos, training: bool = True):  # type: ignore[no-untyped-def]
@@ -248,10 +261,10 @@ def _patch_force_autograd_for_gp() -> None:
     escn_md_mod.compute_forces = compute_forces  # type: ignore[assignment]
     escn_md_mod.compute_forces_and_stress = compute_forces_and_stress  # type: ignore[assignment]
 
-    uma_outputs._hen_force_autograd_patched = True
+    uma_outputs._fxpu_force_autograd_patched = True
     log.info(
-        "HEN force patch: compute_forces retain_graph=True "
-        "(multi-head EFS + GP); marker=hen_force_retain_v2"
+        "FXPU force patch: compute_forces retain_graph=True "
+        "(multi-head EFS + GP); marker=fxpu_force_retain_v2"
     )
 
 
@@ -268,7 +281,7 @@ def _patch_gp_utils_gloo_xpu() -> None:
     import torch.distributed.nn.functional as dist_nn_fn
     from fairchem.core.common import gp_utils
 
-    if getattr(gp_utils, "_hen_gloo_xpu_patched", False):
+    if getattr(gp_utils, "_fxpu_gloo_xpu_patched", False):
         _patch_force_autograd_for_gp()
         return
 
@@ -386,10 +399,10 @@ def _patch_gp_utils_gloo_xpu() -> None:
         """FairChem gloo SumGrad: gather forward; cat grads → all_reduce → slice local.
 
         Marker class id logged so we can confirm Ray workers actually use this
-        implementation (hen_gather_sumgrad_v2).
+        implementation (fxpu_gather_sumgrad_v2).
         """
 
-        _hen_marker = "hen_gather_sumgrad_v2"
+        _fxpu_marker = "fxpu_gather_sumgrad_v2"
 
         @staticmethod
         @torch.compiler.disable
@@ -486,11 +499,11 @@ def _patch_gp_utils_gloo_xpu() -> None:
     if hasattr(gp_utils, "all_reduce"):
         gp_utils.all_reduce = _fn_all_reduce_xpu_safe  # type: ignore[assignment]
 
-    gp_utils._hen_gloo_xpu_patched = True
+    gp_utils._fxpu_gloo_xpu_patched = True
     _patch_force_autograd_for_gp()
     log.info(
         "Patched FairChem GP Gather/Reduce + collectives for XPU+gloo "
-        "(marker=hen_gather_sumgrad_v2 id=%s)",
+        "(marker=fxpu_gather_sumgrad_v2 id=%s)",
         id(GatherFromModelParallelRegionSumGradPadded),
     )
 
@@ -538,7 +551,7 @@ def patch_fairchem_xpu_device() -> None:
     MLIPPredictUnit._setup_device = _setup_device  # type: ignore[method-assign]
     MLIPPredictUnit.set_seed = _set_seed  # type: ignore[method-assign]
     _DEVICE_PATCHED = True
-    log.info("HEN vanilla XPU device patch applied (no multi-GPU)")
+    log.info("FXPU vanilla XPU device patch applied (no multi-GPU)")
 
 
 def ensure_worker_patches() -> None:
@@ -626,7 +639,7 @@ def ensure_worker_patches() -> None:
             torch.xpu.set_device(0)
             # Same-node Ray workers: gloo is reliable. XCCL/oneCCL needs ATL/OFI
             # providers that often fail under Ray without a PMI launcher.
-            backend = os.environ.get("HEN_XPU_DIST_BACKEND", "gloo")
+            backend = os.environ.get("FXPU_DIST_BACKEND", "gloo")
         elif device == "cpu":
             assign_device_for_local_rank(True, 0)
             backend = "gloo"
@@ -650,15 +663,15 @@ def ensure_worker_patches() -> None:
 
         logging.info(
             "Worker %s loaded predict unit on %s (backend=%s, mask=%s) "
-            "hen_gather=%s id=%s force_patch=%s gather_in_ckpt=%s",
+            "fxpu_gather=%s id=%s force_patch=%s gather_in_ckpt=%s",
             self.worker_id,
             self.device,
             backend,
             os.environ.get("ZE_AFFINITY_MASK"),
-            getattr(gather_cls, "_hen_marker", "MISSING"),
+            getattr(gather_cls, "_fxpu_marker", "MISSING"),
             id(gather_cls),
-            getattr(_uma_out, "_hen_force_autograd_patched", False),
-            getattr(_escn_block, "_hen_edgewise_gather_in_ckpt_patched", False),
+            getattr(_uma_out, "_fxpu_force_autograd_patched", False),
+            getattr(_escn_block, "_fxpu_edgewise_gather_in_ckpt_patched", False),
         )
         self.is_setup = True
 
@@ -666,23 +679,23 @@ def ensure_worker_patches() -> None:
     _WORKER_PATCHED = True
 
 
-def _get_hen_worker_actor():
+def _get_fxpu_worker_actor():
     """Lazily define Ray remote worker class (driver only)."""
-    global _HenXPUMLIPWorker
-    if _HenXPUMLIPWorker is not None:
-        return _HenXPUMLIPWorker
+    global _FxpuXPUMLIPWorker
+    if _FxpuXPUMLIPWorker is not None:
+        return _FxpuXPUMLIPWorker
 
     import ray
     from fairchem.core.units.mlip_unit.predict import MLIPWorkerLocal
 
     @ray.remote
-    class HenXPUMLIPWorker(MLIPWorkerLocal):
+    class FxpuXPUMLIPWorker(MLIPWorkerLocal):
         def __init__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
             ensure_worker_patches()
             super().__init__(*args, **kwargs)
 
-    _HenXPUMLIPWorker = HenXPUMLIPWorker
-    return _HenXPUMLIPWorker
+    _FxpuXPUMLIPWorker = FxpuXPUMLIPWorker
+    return _FxpuXPUMLIPWorker
 
 
 def patch_fairchem_xpu_parallel() -> None:
@@ -747,8 +760,8 @@ def patch_fairchem_xpu_parallel() -> None:
         os.environ.setdefault("ZE_FLAT_DEVICE_HIERARCHY", "FLAT")
         os.environ["ZE_AFFINITY_MASK"] = "0"
 
-        hen_root = Path(__file__).resolve().parents[1]
-        sqs_path = str(hen_root / "sqs_sampling")
+        project_root = Path(__file__).resolve().parents[1]
+        sqs_path = str(project_root / "sqs_sampling")
         py_path = os.environ.get("PYTHONPATH", "")
         if sqs_path not in py_path.split(":"):
             os.environ["PYTHONPATH"] = sqs_path + (":" + py_path if py_path else "")
@@ -819,10 +832,10 @@ def patch_fairchem_xpu_parallel() -> None:
             placement_groups.append(pg)
         ray.get(placement_groups[0].ready())
 
-        HenWorker = _get_hen_worker_actor()
+        FxpuWorker = _get_fxpu_worker_actor()
 
         def _actor_opts(worker_id: int, pg):  # type: ignore[no-untyped-def]
-            return HenWorker.options(
+            return FxpuWorker.options(
                 num_cpus=1,
                 num_gpus=0,
                 resources={"xpu_tile": 1.0},

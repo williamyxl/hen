@@ -15,7 +15,7 @@ class GFN2CP2KModel(EnergyModel):
     name = "gfn2_cp2k"
     mode = "fileio"
 
-    def __init__(self, *, project: str = "hen_gfn2_cp2k") -> None:
+    def __init__(self, *, project: str = "fxpu_gfn2_cp2k") -> None:
         self.project = project
 
     def build_calculator(self) -> Calculator:

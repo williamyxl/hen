@@ -40,10 +40,10 @@ GFN2_TBLITE: dict[str, Any] = {
     "xtb_config": None,
 }
 
-_HEN_ROOT = Path(__file__).resolve().parents[1]
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_UMA_CHECKPOINTS = frozenset({"uma-s-1p2.pt"})
 UMA_DEFAULTS: dict[str, Any] = {
-    "model": str(_HEN_ROOT / "uma-cache" / "uma-s-1p2.pt"),
+    "model": str(_PROJECT_ROOT / "uma-cache" / "uma-s-1p2.pt"),
     "task": "omat",
     "device": "xpu",
     "dtype": "float64",
@@ -67,7 +67,7 @@ UNPAIRED_M3 = {
 
 
 def resolve_torch_dtype(dtype: str | Any | None = None) -> Any:
-    """Map config/CLI dtype name to torch.dtype; HEN FairChem requires float64."""
+    """Map config/CLI dtype name to torch.dtype; FXPU FairChem path requires float64."""
     import torch
 
     if dtype is None:
@@ -88,7 +88,7 @@ def resolve_torch_dtype(dtype: str | Any | None = None) -> Any:
         resolved = mapping[key]
     if resolved != torch.float64:
         raise ValueError(
-            f"HEN FairChem inference requires float64/fp64; got {dtype!r}"
+            f"FXPU FairChem inference requires float64/fp64; got {dtype!r}"
         )
     return resolved
 
@@ -229,7 +229,7 @@ def uma_predict_unit(
     device_key = str(device).strip().lower()
     if device_key.startswith("cuda"):
         raise ValueError(
-            "HEN is Intel XPU–only; refuse device="
+            "FXPU path is Intel XPU–only; refuse device="
             f"{device!r}. Use device='xpu' (or 'cpu' for debug)."
         )
     torch_dtype = resolve_torch_dtype(dtype)

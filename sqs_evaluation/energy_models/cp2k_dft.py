@@ -26,7 +26,7 @@ class CP2KDFTModel(EnergyModel):
         basis: str = "DZVP-MOLOPT-SR-GTH",
         dispersion: str = "D3",
         cutoff_ry: float = 600.0,
-        project: str = "hen_cp2k",
+        project: str = "fxpu_cp2k",
     ) -> None:
         self.xc = xc
         self.basis = basis

@@ -6,11 +6,17 @@ References (0 K, same energy method as the alloy):
   - Nb, Ta: bulk bcc metal
   - N: ½ N₂ molecule in a large vacuum box (μ_N = E(N₂)/2)
 
-Writes JSON consumed by ``relax.py --elemental-eref-json``.
+Supports single-species workers (for multi-tile PBS) and a merge step::
 
-Example::
+  # one tile / one species
+  python build_elemental_refs.py --energy uma --species Ti --out-dir refs/uma
+  python build_elemental_refs.py --energy uma --species N --out-dir refs/uma
 
-  python build_elemental_refs.py --energy uma --device xpu --out elemental_refs.json
+  # after all partials exist
+  python build_elemental_refs.py --merge --out-dir refs/uma --out refs/uma/elemental_refs.json
+
+  # serial all-in-one (legacy)
+  python build_elemental_refs.py --energy uma --out refs/uma/elemental_refs.json
 """
 from __future__ import annotations
 
@@ -38,8 +44,8 @@ from energy import (  # noqa: E402
 )
 
 EVAL_ENERGY = ("gfn2-xtb", "uma")
+REQUIRED_SPECIES = ("Ti", "Zr", "Hf", "Nb", "Ta", "N")
 
-# Standard-state crystals for HEN metals (ASE bulk prototypes).
 METAL_BUILDERS: dict[str, Callable[[], Atoms]] = {
     "Ti": lambda: bulk("Ti", "hcp", cubic=False),
     "Zr": lambda: bulk("Zr", "hcp", cubic=False),
@@ -50,7 +56,6 @@ METAL_BUILDERS: dict[str, Callable[[], Atoms]] = {
 
 
 def make_n2(*, vacuum: float = 8.0) -> Atoms:
-    """N₂ in a cubic cell with vacuum; PBC on for MLIP calculators."""
     atoms = molecule("N2")
     atoms.center(vacuum=vacuum)
     atoms.pbc = True
@@ -101,7 +106,6 @@ def relax_and_energy(
     if relax_cell and atoms.pbc.any() and len(atoms) > 2:
         opt_atoms = FrechetCellFilter(atoms)
     else:
-        # Molecules / tiny cells: ionic only (keep box)
         opt_atoms = atoms
     LBFGS(opt_atoms, logfile=str(logfile) if logfile else "-").run(
         fmax=fmax, steps=steps
@@ -109,113 +113,8 @@ def relax_and_energy(
     return atoms, float(atoms.get_potential_energy())
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Elemental refs for formation enthalpy (metals + ½ N₂)"
-    )
-    parser.add_argument("--energy", choices=EVAL_ENERGY, required=True)
-    parser.add_argument("--device", default="xpu")
-    parser.add_argument("--dtype", default="float64")
-    parser.add_argument(
-        "--uma-model",
-        default="/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
-    )
-    parser.add_argument(
-        "--uma-task",
-        default="omat",
-        help="UMA task for bulk metals (default: omat)",
-    )
-    parser.add_argument(
-        "--uma-task-n2",
-        default="omol",
-        help="UMA task for N₂ (default: omol; use omat only if omol unavailable)",
-    )
-    parser.add_argument("--elements", nargs="+", default=list(METAL_BUILDERS))
-    parser.add_argument("--fmax", type=float, default=0.01)
-    parser.add_argument("--steps", type=int, default=300)
-    parser.add_argument("--n2-vacuum", type=float, default=8.0)
-    parser.add_argument("--out", type=Path, default=Path("elemental_refs.json"))
-    parser.add_argument("--out-dir", type=Path, default=Path("elemental_refs"))
-    parser.add_argument(
-        "--no-relax",
-        action="store_true",
-        help="Single-point only (no ionic/cell relaxation)",
-    )
-    args = parser.parse_args()
-
-    for el in args.elements:
-        if el not in METAL_BUILDERS:
-            raise ValueError(
-                f"Unsupported element {el!r}; choose from {sorted(METAL_BUILDERS)}"
-            )
-
-    args.out_dir.mkdir(parents=True, exist_ok=True)
-    details: dict[str, Any] = {}
-    per_atom: dict[str, float] = {}
-
-    # Metals (crystal task)
-    metal_calc = make_calc(args, uma_task=args.uma_task)
-    for el in args.elements:
-        atoms0 = METAL_BUILDERS[el]()
-        log = args.out_dir / f"{el}.log"
-        if args.no_relax:
-            atoms = prepare_atoms(atoms0, energy=args.energy)
-            atoms.calc = metal_calc
-            e = float(atoms.get_potential_energy())
-        else:
-            atoms, e = relax_and_energy(
-                atoms0,
-                metal_calc,
-                energy_method=args.energy,
-                fmax=args.fmax,
-                steps=args.steps,
-                relax_cell=True,
-                logfile=log,
-            )
-        e_pa = e / len(atoms)
-        per_atom[el] = e_pa
-        details[el] = {
-            "structure": "hcp" if el in ("Ti", "Zr", "Hf") else "bcc",
-            "n_atoms": len(atoms),
-            "energy_eV": e,
-            "energy_per_atom_eV": e_pa,
-            "cell_A": np.asarray(atoms.cell.array, dtype=float).tolist(),
-        }
-        write(args.out_dir / f"{el}.extxyz", atoms)
-        print(f"{el}: E={e:.6f} eV  E/atom={e_pa:.6f} eV  ({details[el]['structure']})")
-
-    # Nitrogen: μ_N = E(N₂)/2
-    n2_calc = make_calc(args, uma_task=args.uma_task_n2)
-    n2_0 = make_n2(vacuum=args.n2_vacuum)
-    if args.no_relax:
-        n2 = prepare_atoms(n2_0, energy=args.energy)
-        n2.calc = n2_calc
-        e_n2 = float(n2.get_potential_energy())
-    else:
-        n2, e_n2 = relax_and_energy(
-            n2_0,
-            n2_calc,
-            energy_method=args.energy,
-            fmax=args.fmax,
-            steps=args.steps,
-            relax_cell=False,
-            logfile=args.out_dir / "N2.log",
-        )
-    mu_n = e_n2 / 2.0
-    per_atom["N"] = mu_n
-    details["N"] = {
-        "structure": "N2",
-        "n_atoms": 2,
-        "energy_eV": e_n2,
-        "energy_per_atom_eV": mu_n,
-        "n_reference": "0.5_N2",
-        "bond_length_A": float(n2.get_distance(0, 1)),
-        "uma_task": args.uma_task_n2 if args.energy == "uma" else None,
-    }
-    write(args.out_dir / "N2.extxyz", n2)
-    print(f"N: E(N2)={e_n2:.6f} eV  μ_N=E(N2)/2={mu_n:.6f} eV")
-
-    payload = {
+def _meta(args: argparse.Namespace) -> dict[str, Any]:
+    return {
         "energy_method": args.energy,
         "device": args.device,
         "dtype": args.dtype,
@@ -227,9 +126,212 @@ def main() -> None:
             "ΔH_f / N_atoms = E(crystal)/N - Σ_i μ_i / N, "
             "with μ_M = E(bulk metal)/atom and μ_N = E(N2)/2"
         ),
-        "per_atom_eV": per_atom,
-        "details": details,
     }
+
+
+def run_metal(args: argparse.Namespace, el: str) -> dict[str, Any]:
+    calc = make_calc(args, uma_task=args.uma_task)
+    atoms0 = METAL_BUILDERS[el]()
+    log = args.out_dir / f"{el}.log"
+    if args.no_relax:
+        atoms = prepare_atoms(atoms0, energy=args.energy)
+        atoms.calc = calc
+        e = float(atoms.get_potential_energy())
+    else:
+        atoms, e = relax_and_energy(
+            atoms0,
+            calc,
+            energy_method=args.energy,
+            fmax=args.fmax,
+            steps=args.steps,
+            relax_cell=True,
+            logfile=log,
+        )
+    e_pa = e / len(atoms)
+    write(args.out_dir / f"{el}.extxyz", atoms)
+    print(f"{el}: E={e:.6f} eV  E/atom={e_pa:.6f} eV")
+    return {
+        "species": el,
+        **_meta(args),
+        "per_atom_eV": {el: e_pa},
+        "details": {
+            el: {
+                "structure": "hcp" if el in ("Ti", "Zr", "Hf") else "bcc",
+                "n_atoms": len(atoms),
+                "energy_eV": e,
+                "energy_per_atom_eV": e_pa,
+                "cell_A": np.asarray(atoms.cell.array, dtype=float).tolist(),
+            }
+        },
+    }
+
+
+def run_n2(args: argparse.Namespace) -> dict[str, Any]:
+    calc = make_calc(args, uma_task=args.uma_task_n2)
+    n2_0 = make_n2(vacuum=args.n2_vacuum)
+    if args.no_relax:
+        n2 = prepare_atoms(n2_0, energy=args.energy)
+        n2.calc = calc
+        e_n2 = float(n2.get_potential_energy())
+    else:
+        n2, e_n2 = relax_and_energy(
+            n2_0,
+            calc,
+            energy_method=args.energy,
+            fmax=args.fmax,
+            steps=args.steps,
+            relax_cell=False,
+            logfile=args.out_dir / "N2.log",
+        )
+    mu_n = e_n2 / 2.0
+    write(args.out_dir / "N2.extxyz", n2)
+    print(f"N: E(N2)={e_n2:.6f} eV  μ_N=E(N2)/2={mu_n:.6f} eV")
+    return {
+        "species": "N",
+        **_meta(args),
+        "per_atom_eV": {"N": mu_n},
+        "details": {
+            "N": {
+                "structure": "N2",
+                "n_atoms": 2,
+                "energy_eV": e_n2,
+                "energy_per_atom_eV": mu_n,
+                "n_reference": "0.5_N2",
+                "bond_length_A": float(n2.get_distance(0, 1)),
+                "uma_task": args.uma_task_n2 if args.energy == "uma" else None,
+            }
+        },
+    }
+
+
+def write_partial(out_dir: Path, payload: dict[str, Any]) -> Path:
+    sp = payload["species"]
+    path = out_dir / "partials" / f"{sp}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f"wrote {path}")
+    return path
+
+
+def merge_partials(out_dir: Path, out: Path, *, require_all: bool = True) -> dict[str, Any]:
+    partial_dir = out_dir / "partials"
+    files = sorted(partial_dir.glob("*.json"))
+    if not files:
+        raise FileNotFoundError(f"No partials under {partial_dir}")
+    per_atom: dict[str, float] = {}
+    details: dict[str, Any] = {}
+    meta: dict[str, Any] | None = None
+    for f in files:
+        part = json.loads(f.read_text(encoding="utf-8"))
+        if meta is None:
+            meta = {
+                k: part.get(k)
+                for k in (
+                    "energy_method",
+                    "device",
+                    "dtype",
+                    "uma_model",
+                    "uma_task_metals",
+                    "uma_task_n2",
+                    "n_reference",
+                    "definition",
+                )
+            }
+        per_atom.update({k: float(v) for k, v in part["per_atom_eV"].items()})
+        details.update(part["details"])
+    assert meta is not None
+    if require_all:
+        missing = [s for s in REQUIRED_SPECIES if s not in per_atom]
+        if missing:
+            raise RuntimeError(f"Missing species in partials: {missing}")
+    payload = {**meta, "per_atom_eV": per_atom, "details": details}
+    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f"merged {len(per_atom)} species → {out}")
+    return payload
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Elemental refs for formation enthalpy (metals + ½ N₂)"
+    )
+    parser.add_argument("--energy", choices=EVAL_ENERGY, default=None)
+    parser.add_argument("--device", default="xpu")
+    parser.add_argument("--dtype", default="float64")
+    parser.add_argument(
+        "--uma-model",
+        default="/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
+    )
+    parser.add_argument("--uma-task", default="omat")
+    parser.add_argument("--uma-task-n2", default="omol")
+    parser.add_argument(
+        "--species",
+        type=str,
+        default=None,
+        help="Single species worker: Ti|Zr|Hf|Nb|Ta|N (writes partials/<sp>.json)",
+    )
+    parser.add_argument(
+        "--elements",
+        nargs="+",
+        default=None,
+        help="Serial metal list (default: all metals); ignored with --species/--merge",
+    )
+    parser.add_argument("--fmax", type=float, default=0.01)
+    parser.add_argument("--steps", type=int, default=300)
+    parser.add_argument("--n2-vacuum", type=float, default=8.0)
+    parser.add_argument("--out", type=Path, default=Path("elemental_refs.json"))
+    parser.add_argument("--out-dir", type=Path, default=Path("elemental_refs"))
+    parser.add_argument("--no-relax", action="store_true")
+    parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="Merge out-dir/partials/*.json into --out (no XPU work)",
+    )
+    parser.add_argument(
+        "--skip-n2",
+        action="store_true",
+        help="Serial mode: metals only (no N₂)",
+    )
+    args = parser.parse_args()
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.merge:
+        merge_partials(args.out_dir, args.out)
+        return
+
+    if args.energy is None:
+        raise SystemExit("--energy is required unless --merge")
+
+    if args.species is not None:
+        sp = args.species.strip()
+        if sp == "N":
+            payload = run_n2(args)
+        elif sp in METAL_BUILDERS:
+            payload = run_metal(args, sp)
+        else:
+            raise ValueError(
+                f"Unknown --species {sp!r}; choose from {list(METAL_BUILDERS)+['N']}"
+            )
+        write_partial(args.out_dir, payload)
+        return
+
+    # Serial all-in-one
+    metals = list(args.elements) if args.elements else list(METAL_BUILDERS)
+    for el in metals:
+        if el not in METAL_BUILDERS:
+            raise ValueError(f"Unsupported element {el!r}")
+    per_atom: dict[str, float] = {}
+    details: dict[str, Any] = {}
+    for el in metals:
+        part = run_metal(args, el)
+        write_partial(args.out_dir, part)
+        per_atom.update(part["per_atom_eV"])
+        details.update(part["details"])
+    if not args.skip_n2:
+        part = run_n2(args)
+        write_partial(args.out_dir, part)
+        per_atom.update(part["per_atom_eV"])
+        details.update(part["details"])
+    payload = {**_meta(args), "per_atom_eV": per_atom, "details": details}
     args.out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"wrote {args.out}")
 

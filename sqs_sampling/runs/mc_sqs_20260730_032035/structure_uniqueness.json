@@ -61,6 +61,10 @@
     "symmetry_method": "full cubic point group O_h (48) \u00d7 cation-sublattice translations; canonical cation coloring",
     "n_point_group_ops": 48,
     "n_automorphisms": 5184,
+    "ase_SymmetryEquivalenceCheck_crosscheck": {
+      "symmetry_unique": 108,
+      "note": "Independent ASE comparator also found 108/108 unique"
+    },
     "note": "Equivalence = related by a cubic crystallographic point-group operation (proper or improper) and/or a supercell translation that preserves the cation sublattice. Anion (N) sites are fixed."
   },
   "formulas": {

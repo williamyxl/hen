@@ -27,8 +27,8 @@ property_options:
     relax_cell: true
 
   formation_enthalpy:
-    # Build once: python simulations/cell_opt/build_elemental_refs.py --energy uma ...
-    elemental_eref: null
+    # Built by: qsub simulations/cell_opt/build_elemental_refs_uma.pbs
+    elemental_eref: refs/uma/elemental_refs.json
 
   sro:
     cutoff: 3.5

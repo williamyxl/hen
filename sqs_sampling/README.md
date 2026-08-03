@@ -35,7 +35,7 @@ uma_task: omat
 ```
 
 Requires `fairchem-core` with **PyTorch XPU** wheels (see root `install.bash`). Only `uma-s-1p2.pt` is allowed.
-Device `xpu` uses a small HEN runtime patch because upstream FairChem asserts `cuda|cpu`
+Device `xpu` uses a small FXPU runtime patch because upstream FairChem asserts `cuda|cpu`
 only — see [`docs/fairchem_xpu_fork.md`](../docs/fairchem_xpu_fork.md).
 
 Before each UMA evaluation, `atoms.info["charge"]` is set from the formal M³⁺ / N³⁻

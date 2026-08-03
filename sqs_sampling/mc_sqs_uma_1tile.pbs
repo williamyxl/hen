@@ -1,7 +1,7 @@
 #!/bin/bash -l
-#PBS -N hen_mc_uma12
+#PBS -N mc_uma12
 #PBS -q debug-scaling
-# Allowed queues for HEN tests: debug | debug-scaling ONLY (never prod/capacity/etc.)
+# Allowed queues for FXPU tests: debug | debug-scaling ONLY (never prod/capacity/etc.)
 #PBS -A MatSciAI
 #PBS -l filesystems=flare
 #PBS -l select=1:ncpus=204:mpiprocs=1:ompthreads=1

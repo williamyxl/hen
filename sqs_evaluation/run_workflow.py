@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HEN structure evaluation workflow CLI.
+"""HEN (High Entropy Nitride) structure evaluation workflow CLI.
 
 Energy model (default: FairChem UMA) + property-oriented simulations on .extxyz.
 

@@ -20,7 +20,7 @@ class SiestaModel(EnergyModel):
         *,
         xc: str = "PBE",
         mesh_cutoff_ry: float = 200.0,
-        project: str = "hen_siesta",
+        project: str = "fxpu_siesta",
     ) -> None:
         self.xc = xc
         self.mesh_cutoff_ry = float(mesh_cutoff_ry)

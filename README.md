@@ -9,15 +9,19 @@ Monte Carlo special quasirandom structure (SQS) sampling and property evaluation
 | [`plan/`](plan/) | Target properties and computation plan |
 | [`sqs_sampling/`](sqs_sampling/) | Rosenbluth CBMC SQS sampler (GFN2-xTB or UMA, 10 trials/step) |
 | [`sqs_evaluation/`](sqs_evaluation/) | Numbered templates: SRO, relax, LLD, elastic, CP2K validation |
+| [`docs/finding_xpu_ag_fd_cliff_n10.md`](docs/finding_xpu_ag_fd_cliff_n10.md) | XPU FP64 AG≠FD root cause (`prepare_wigner` einsum) + fix |
 
 ## Setup
 
 ```bash
-# Aurora: fresh hen-xpu env (does NOT clone ALCF frameworks)
+# Aurora: FairChem/UMA XPU conda env (does NOT clone ALCF frameworks)
 bash install.bash
-# activates under:
-#   /lus/flare/projects/MatSciAI/xiaoliyan/software/conda/envs/hen-xpu
+# Prefer:
+#   source scripts/activate_fxpu.sh
+# Env path: .../conda/envs/fxpu → symlink to hen-xpu (physical env name kept)
 ```
+
+Naming: **HEN** = this High Entropy Nitride workspace; FairChem/UMA infra uses **FXPU_*** — see [`docs/NAMING.md`](docs/NAMING.md).
 
 UMA checkpoint for XPU tests: `uma-cache/uma-s-1p2.pt` only (not `uma-m-1p1.pt`).
 PBS smoke jobs: `pbs/01_xpu_smoke.pbs`, `pbs/02_uma_fp64_spe.pbs` (`debug`, FLAT, `ZE_AFFINITY_MASK=0`).
@@ -45,7 +49,7 @@ Evaluation steps and suggested order are documented in [`sqs_evaluation/README.m
 
 ## Target properties
 
-1. Total energy / mixing enthalpy  
+1. Total energy / mixing enthalpy / formation enthalpy  
 2. Elastic constants and derived moduli  
 3. Local lattice distortion  
 4. Short-range order (Warren–Cowley)

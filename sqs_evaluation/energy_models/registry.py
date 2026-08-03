@@ -65,19 +65,19 @@ def build_energy_model(cfg: dict[str, Any] | None = None) -> EnergyModel:
     if name == "gfn2_tblite":
         return cls()
     if name == "gfn2_cp2k":
-        return cls(project=str(cfg.get("project", "hen_gfn2_cp2k")))
+        return cls(project=str(cfg.get("project", "fxpu_gfn2_cp2k")))
     if name == "cp2k_dft":
         return cls(
             xc=str(cfg.get("xc", "PBE")),
             basis=str(cfg.get("basis", "DZVP-MOLOPT-SR-GTH")),
             dispersion=str(cfg.get("dispersion", "D3")),
             cutoff_ry=float(cfg.get("cutoff_ry", 600.0)),
-            project=str(cfg.get("project", "hen_cp2k")),
+            project=str(cfg.get("project", "fxpu_cp2k")),
         )
     if name == "siesta":
         return cls(
             xc=str(cfg.get("xc", "PBE")),
             mesh_cutoff_ry=float(cfg.get("mesh_cutoff_ry", 200.0)),
-            project=str(cfg.get("project", "hen_siesta")),
+            project=str(cfg.get("project", "fxpu_siesta")),
         )
     raise RuntimeError(f"unhandled model {name}")
