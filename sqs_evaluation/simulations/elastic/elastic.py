@@ -59,7 +59,11 @@ def vrh_cubic(c11, c12, c44):
     b, g = bv, 0.5 * (gv + gr)
     e = 9.0 * b * g / (3.0 * b + g)
     nu = (3.0 * b - 2.0 * g) / (2.0 * (3.0 * b + g))
-    return {"B": b, "G": g, "E": e, "nu": nu}
+    from hardness import chen_fields  # noqa: WPS433
+
+    out = {"B": b, "G": g, "E": e, "nu": nu}
+    out.update(chen_fields(b, g))
+    return out
 
 
 def ionic_relax(atoms, calc, fmax: float, steps: int):
@@ -134,12 +138,15 @@ def main() -> None:
             "G_GPa": der["G"],
             "E_GPa": der["E"],
             "nu": der["nu"],
+            "G_over_B": der["G_over_B"],
+            "Hv_Chen_GPa": der["Hv_Chen_GPa"],
             "energy_method": args.energy,
         }
         results.append(row)
         print(
             f"frame {n}: C11={c11:.2f} C12={c12:.2f} C44={c44:.2f} GPa  "
-            f"B={der['B']:.2f} G={der['G']:.2f} E={der['E']:.2f} nu={der['nu']:.4f}"
+            f"B={der['B']:.2f} G={der['G']:.2f} E={der['E']:.2f} nu={der['nu']:.4f}  "
+            f"Hv_Chen={der['Hv_Chen_GPa']:.2f}"
         )
 
     out_json = args.out_dir / "elastic.json"

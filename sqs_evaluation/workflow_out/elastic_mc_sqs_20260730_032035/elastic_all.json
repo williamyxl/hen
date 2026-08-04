@@ -21,7 +21,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.131407499313354
+    "wall_s": 31.131407499313354,
+    "G_over_B": 0.533048665289443,
+    "Hv_Chen_GPa": 14.439475547625442
   },
   {
     "task_id": "tile_00__sqs_001",
@@ -45,7 +47,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.97989058494568
+    "wall_s": 33.97989058494568,
+    "G_over_B": 0.5148668465646934,
+    "Hv_Chen_GPa": 13.684569212074962
   },
   {
     "task_id": "tile_00__sqs_002",
@@ -69,7 +73,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 43.51071763038635
+    "wall_s": 43.51071763038635,
+    "G_over_B": 0.5202997266179439,
+    "Hv_Chen_GPa": 13.766422849444982
   },
   {
     "task_id": "tile_00__sqs_003",
@@ -93,7 +99,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.422568559646606
+    "wall_s": 29.422568559646606,
+    "G_over_B": 0.5294267905065656,
+    "Hv_Chen_GPa": 14.44006463711887
   },
   {
     "task_id": "tile_00__sqs_004",
@@ -117,7 +125,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 77.79932904243469
+    "wall_s": 77.79932904243469,
+    "G_over_B": 0.4856846303068572,
+    "Hv_Chen_GPa": 11.91874621801949
   },
   {
     "task_id": "tile_00__sqs_005",
@@ -141,7 +151,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 37.221067905426025
+    "wall_s": 37.221067905426025,
+    "G_over_B": 0.5175277348230606,
+    "Hv_Chen_GPa": 13.766281140627463
   },
   {
     "task_id": "tile_00__sqs_006",
@@ -165,7 +177,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 32.833638191223145
+    "wall_s": 32.833638191223145,
+    "G_over_B": 0.5423143724494276,
+    "Hv_Chen_GPa": 14.964812374323412
   },
   {
     "task_id": "tile_00__sqs_007",
@@ -189,7 +203,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.93017911911011
+    "wall_s": 35.93017911911011,
+    "G_over_B": 0.5206163198062198,
+    "Hv_Chen_GPa": 14.030986095138882
   },
   {
     "task_id": "tile_00__sqs_008",
@@ -213,7 +229,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.54190754890442
+    "wall_s": 31.54190754890442,
+    "G_over_B": 0.5200665220138615,
+    "Hv_Chen_GPa": 13.857492285054423
   },
   {
     "task_id": "tile_01__sqs_000",
@@ -237,7 +255,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.59046697616577
+    "wall_s": 35.59046697616577,
+    "G_over_B": 0.5283810258700123,
+    "Hv_Chen_GPa": 14.434175062675017
   },
   {
     "task_id": "tile_01__sqs_001",
@@ -261,7 +281,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 37.20476007461548
+    "wall_s": 37.20476007461548,
+    "G_over_B": 0.5220233078847734,
+    "Hv_Chen_GPa": 14.082744255067603
   },
   {
     "task_id": "tile_01__sqs_002",
@@ -285,7 +307,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 34.871320962905884
+    "wall_s": 34.871320962905884,
+    "G_over_B": 0.5093452094444746,
+    "Hv_Chen_GPa": 13.437599166799124
   },
   {
     "task_id": "tile_01__sqs_003",
@@ -309,7 +333,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.909559726715088
+    "wall_s": 27.909559726715088,
+    "G_over_B": 0.5219102261725063,
+    "Hv_Chen_GPa": 14.05162948105944
   },
   {
     "task_id": "tile_01__sqs_004",
@@ -333,7 +359,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.911988496780396
+    "wall_s": 28.911988496780396,
+    "G_over_B": 0.521353620878628,
+    "Hv_Chen_GPa": 13.901869324967624
   },
   {
     "task_id": "tile_01__sqs_005",
@@ -357,7 +385,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.612188816070557
+    "wall_s": 29.612188816070557,
+    "G_over_B": 0.5230804591915482,
+    "Hv_Chen_GPa": 13.946536660571798
   },
   {
     "task_id": "tile_01__sqs_006",
@@ -381,7 +411,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.350730657577515
+    "wall_s": 26.350730657577515,
+    "G_over_B": 0.522942575561499,
+    "Hv_Chen_GPa": 14.135159019191619
   },
   {
     "task_id": "tile_01__sqs_007",
@@ -405,7 +437,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 36.717355489730835
+    "wall_s": 36.717355489730835,
+    "G_over_B": 0.5082505345289241,
+    "Hv_Chen_GPa": 13.238107221994241
   },
   {
     "task_id": "tile_01__sqs_008",
@@ -429,7 +463,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.278082609176636
+    "wall_s": 35.278082609176636,
+    "G_over_B": 0.5129432967958584,
+    "Hv_Chen_GPa": 13.537202954605629
   },
   {
     "task_id": "tile_02__sqs_000",
@@ -453,7 +489,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 32.085853815078735
+    "wall_s": 32.085853815078735,
+    "G_over_B": 0.5345476140968347,
+    "Hv_Chen_GPa": 14.569831264304245
   },
   {
     "task_id": "tile_02__sqs_001",
@@ -477,7 +515,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.569896697998047
+    "wall_s": 31.569896697998047,
+    "G_over_B": 0.5115898518435635,
+    "Hv_Chen_GPa": 13.406007596127044
   },
   {
     "task_id": "tile_02__sqs_002",
@@ -501,7 +541,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 37.048900842666626
+    "wall_s": 37.048900842666626,
+    "G_over_B": 0.5193386865713522,
+    "Hv_Chen_GPa": 13.802448181560322
   },
   {
     "task_id": "tile_02__sqs_003",
@@ -525,7 +567,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 47.03535985946655
+    "wall_s": 47.03535985946655,
+    "G_over_B": 0.5116792493065,
+    "Hv_Chen_GPa": 13.435393819419968
   },
   {
     "task_id": "tile_02__sqs_004",
@@ -549,7 +593,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.241437673568726
+    "wall_s": 27.241437673568726,
+    "G_over_B": 0.5203008230810098,
+    "Hv_Chen_GPa": 13.768529171077773
   },
   {
     "task_id": "tile_02__sqs_005",
@@ -573,7 +619,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.726903200149536
+    "wall_s": 25.726903200149536,
+    "G_over_B": 0.5318216807757742,
+    "Hv_Chen_GPa": 14.415795145816904
   },
   {
     "task_id": "tile_02__sqs_006",
@@ -597,7 +645,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.701699018478394
+    "wall_s": 27.701699018478394,
+    "G_over_B": 0.5211410653217896,
+    "Hv_Chen_GPa": 13.951743340753485
   },
   {
     "task_id": "tile_02__sqs_007",
@@ -621,7 +671,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.96911859512329
+    "wall_s": 26.96911859512329,
+    "G_over_B": 0.5154721357286248,
+    "Hv_Chen_GPa": 13.674605174141774
   },
   {
     "task_id": "tile_02__sqs_008",
@@ -645,7 +697,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 22.62472701072693
+    "wall_s": 22.62472701072693,
+    "G_over_B": 0.5258322514504539,
+    "Hv_Chen_GPa": 14.091164148216706
   },
   {
     "task_id": "tile_03__sqs_000",
@@ -669,7 +723,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 22.30185604095459
+    "wall_s": 22.30185604095459,
+    "G_over_B": 0.5250984393942755,
+    "Hv_Chen_GPa": 14.24020065571338
   },
   {
     "task_id": "tile_03__sqs_001",
@@ -693,7 +749,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.350359439849854
+    "wall_s": 25.350359439849854,
+    "G_over_B": 0.5195314384942907,
+    "Hv_Chen_GPa": 13.962044490513193
   },
   {
     "task_id": "tile_03__sqs_002",
@@ -717,7 +775,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 44.17975211143494
+    "wall_s": 44.17975211143494,
+    "G_over_B": 0.513942309140538,
+    "Hv_Chen_GPa": 13.378313730590229
   },
   {
     "task_id": "tile_03__sqs_003",
@@ -741,7 +801,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.482712268829346
+    "wall_s": 29.482712268829346,
+    "G_over_B": 0.49937333657466254,
+    "Hv_Chen_GPa": 12.800479871706735
   },
   {
     "task_id": "tile_03__sqs_004",
@@ -765,7 +827,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 36.90929675102234
+    "wall_s": 36.90929675102234,
+    "G_over_B": 0.5086162332788661,
+    "Hv_Chen_GPa": 13.241149252021227
   },
   {
     "task_id": "tile_03__sqs_005",
@@ -789,7 +853,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.213335514068604
+    "wall_s": 31.213335514068604,
+    "G_over_B": 0.515317457789374,
+    "Hv_Chen_GPa": 13.470774820164245
   },
   {
     "task_id": "tile_03__sqs_006",
@@ -813,7 +879,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 43.13720464706421
+    "wall_s": 43.13720464706421,
+    "G_over_B": 0.502265354724971,
+    "Hv_Chen_GPa": 12.811513798259753
   },
   {
     "task_id": "tile_03__sqs_007",
@@ -837,7 +905,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.976711988449097
+    "wall_s": 31.976711988449097,
+    "G_over_B": 0.5127137671567163,
+    "Hv_Chen_GPa": 13.57849850388709
   },
   {
     "task_id": "tile_03__sqs_008",
@@ -861,7 +931,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 51.9016900062561
+    "wall_s": 51.9016900062561,
+    "G_over_B": 0.4926814303996675,
+    "Hv_Chen_GPa": 12.299961451345176
   },
   {
     "task_id": "tile_04__sqs_000",
@@ -885,7 +957,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 22.232131242752075
+    "wall_s": 22.232131242752075,
+    "G_over_B": 0.5337598799608781,
+    "Hv_Chen_GPa": 14.53409173661121
   },
   {
     "task_id": "tile_04__sqs_001",
@@ -909,7 +983,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.126046657562256
+    "wall_s": 25.126046657562256,
+    "G_over_B": 0.5132300959773378,
+    "Hv_Chen_GPa": 13.528396220440822
   },
   {
     "task_id": "tile_04__sqs_002",
@@ -933,7 +1009,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.26148796081543
+    "wall_s": 29.26148796081543,
+    "G_over_B": 0.5219793825258674,
+    "Hv_Chen_GPa": 14.098478405525398
   },
   {
     "task_id": "tile_04__sqs_003",
@@ -957,7 +1035,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 32.108824491500854
+    "wall_s": 32.108824491500854,
+    "G_over_B": 0.5166616180032917,
+    "Hv_Chen_GPa": 13.7100279535975
   },
   {
     "task_id": "tile_04__sqs_004",
@@ -981,7 +1061,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.12344741821289
+    "wall_s": 29.12344741821289,
+    "G_over_B": 0.5193009590414388,
+    "Hv_Chen_GPa": 13.929954673210364
   },
   {
     "task_id": "tile_04__sqs_005",
@@ -1005,7 +1087,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 24.096386909484863
+    "wall_s": 24.096386909484863,
+    "G_over_B": 0.5199822544641246,
+    "Hv_Chen_GPa": 13.954901199199185
   },
   {
     "task_id": "tile_04__sqs_006",
@@ -1029,7 +1113,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 34.80817937850952
+    "wall_s": 34.80817937850952,
+    "G_over_B": 0.5221121803431258,
+    "Hv_Chen_GPa": 13.894483654156883
   },
   {
     "task_id": "tile_04__sqs_007",
@@ -1053,7 +1139,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 32.137319803237915
+    "wall_s": 32.137319803237915,
+    "G_over_B": 0.5291734786708567,
+    "Hv_Chen_GPa": 14.138398556557913
   },
   {
     "task_id": "tile_04__sqs_008",
@@ -1077,7 +1165,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.76489758491516
+    "wall_s": 27.76489758491516,
+    "G_over_B": 0.5287098412580652,
+    "Hv_Chen_GPa": 14.25823818376086
   },
   {
     "task_id": "tile_05__sqs_000",
@@ -1101,7 +1191,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 40.0335009098053
+    "wall_s": 40.0335009098053,
+    "G_over_B": 0.5189595281959472,
+    "Hv_Chen_GPa": 13.750994678650333
   },
   {
     "task_id": "tile_05__sqs_001",
@@ -1125,7 +1217,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 34.02911329269409
+    "wall_s": 34.02911329269409,
+    "G_over_B": 0.5234314277834689,
+    "Hv_Chen_GPa": 13.959562891710334
   },
   {
     "task_id": "tile_05__sqs_002",
@@ -1149,7 +1243,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.659449815750122
+    "wall_s": 28.659449815750122,
+    "G_over_B": 0.5159758370838529,
+    "Hv_Chen_GPa": 13.653144203059487
   },
   {
     "task_id": "tile_05__sqs_003",
@@ -1173,7 +1269,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.319538593292236
+    "wall_s": 28.319538593292236,
+    "G_over_B": 0.5187274239555458,
+    "Hv_Chen_GPa": 13.778349056564043
   },
   {
     "task_id": "tile_05__sqs_004",
@@ -1197,7 +1295,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 45.83733582496643
+    "wall_s": 45.83733582496643,
+    "G_over_B": 0.49318008070278335,
+    "Hv_Chen_GPa": 12.586811382107989
   },
   {
     "task_id": "tile_05__sqs_005",
@@ -1221,7 +1321,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 40.94547653198242
+    "wall_s": 40.94547653198242,
+    "G_over_B": 0.5005119018180749,
+    "Hv_Chen_GPa": 12.748214170807392
   },
   {
     "task_id": "tile_05__sqs_006",
@@ -1245,7 +1347,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 24.39151406288147
+    "wall_s": 24.39151406288147,
+    "G_over_B": 0.5335894026394357,
+    "Hv_Chen_GPa": 14.657650488839291
   },
   {
     "task_id": "tile_05__sqs_007",
@@ -1269,7 +1373,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 30.637619256973267
+    "wall_s": 30.637619256973267,
+    "G_over_B": 0.5213126776738137,
+    "Hv_Chen_GPa": 14.004289400296923
   },
   {
     "task_id": "tile_05__sqs_008",
@@ -1293,7 +1399,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.89186668395996
+    "wall_s": 31.89186668395996,
+    "G_over_B": 0.534130019808862,
+    "Hv_Chen_GPa": 14.595603901485951
   },
   {
     "task_id": "tile_06__sqs_000",
@@ -1317,7 +1425,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.87296223640442
+    "wall_s": 31.87296223640442,
+    "G_over_B": 0.5212508637523108,
+    "Hv_Chen_GPa": 13.988359667110242
   },
   {
     "task_id": "tile_06__sqs_001",
@@ -1341,7 +1451,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.895458936691284
+    "wall_s": 27.895458936691284,
+    "G_over_B": 0.517122317089913,
+    "Hv_Chen_GPa": 13.79662828359346
   },
   {
     "task_id": "tile_06__sqs_002",
@@ -1365,7 +1477,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.59374785423279
+    "wall_s": 35.59374785423279,
+    "G_over_B": 0.5079977743128699,
+    "Hv_Chen_GPa": 13.203854355490709
   },
   {
     "task_id": "tile_06__sqs_003",
@@ -1389,7 +1503,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 24.11003541946411
+    "wall_s": 24.11003541946411,
+    "G_over_B": 0.5082514971548208,
+    "Hv_Chen_GPa": 13.294280128190795
   },
   {
     "task_id": "tile_06__sqs_004",
@@ -1413,7 +1529,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.93223237991333
+    "wall_s": 35.93223237991333,
+    "G_over_B": 0.49906477778718467,
+    "Hv_Chen_GPa": 12.659429032060329
   },
   {
     "task_id": "tile_06__sqs_005",
@@ -1437,7 +1555,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.120218992233276
+    "wall_s": 26.120218992233276,
+    "G_over_B": 0.5244541036494144,
+    "Hv_Chen_GPa": 14.307616189182504
   },
   {
     "task_id": "tile_06__sqs_006",
@@ -1461,7 +1581,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 45.26889228820801
+    "wall_s": 45.26889228820801,
+    "G_over_B": 0.5200129595799076,
+    "Hv_Chen_GPa": 13.783225536380506
   },
   {
     "task_id": "tile_06__sqs_007",
@@ -1485,7 +1607,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.38925528526306
+    "wall_s": 28.38925528526306,
+    "G_over_B": 0.532944373733076,
+    "Hv_Chen_GPa": 14.436394166807943
   },
   {
     "task_id": "tile_06__sqs_008",
@@ -1509,7 +1633,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.89112329483032
+    "wall_s": 35.89112329483032,
+    "G_over_B": 0.5402484544843908,
+    "Hv_Chen_GPa": 14.737296373554013
   },
   {
     "task_id": "tile_07__sqs_000",
@@ -1533,7 +1659,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 23.887508630752563
+    "wall_s": 23.887508630752563,
+    "G_over_B": 0.5397028317183588,
+    "Hv_Chen_GPa": 14.989439147736444
   },
   {
     "task_id": "tile_07__sqs_001",
@@ -1557,7 +1685,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 36.23469305038452
+    "wall_s": 36.23469305038452,
+    "G_over_B": 0.5136824808122168,
+    "Hv_Chen_GPa": 13.557219577531718
   },
   {
     "task_id": "tile_07__sqs_002",
@@ -1581,7 +1711,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 24.98919367790222
+    "wall_s": 24.98919367790222,
+    "G_over_B": 0.5265660414292487,
+    "Hv_Chen_GPa": 14.181223604858854
   },
   {
     "task_id": "tile_07__sqs_003",
@@ -1605,7 +1737,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 32.737263441085815
+    "wall_s": 32.737263441085815,
+    "G_over_B": 0.5095285356190984,
+    "Hv_Chen_GPa": 13.307531728990043
   },
   {
     "task_id": "tile_07__sqs_004",
@@ -1629,7 +1763,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.93845844268799
+    "wall_s": 33.93845844268799,
+    "G_over_B": 0.5155639854220162,
+    "Hv_Chen_GPa": 13.658468070750633
   },
   {
     "task_id": "tile_07__sqs_005",
@@ -1653,7 +1789,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 23.915217638015747
+    "wall_s": 23.915217638015747,
+    "G_over_B": 0.5336823420241131,
+    "Hv_Chen_GPa": 14.601413609238172
   },
   {
     "task_id": "tile_07__sqs_006",
@@ -1677,7 +1815,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 30.893165111541748
+    "wall_s": 30.893165111541748,
+    "G_over_B": 0.5156148833111915,
+    "Hv_Chen_GPa": 13.594123832114906
   },
   {
     "task_id": "tile_07__sqs_007",
@@ -1701,7 +1841,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.08677363395691
+    "wall_s": 29.08677363395691,
+    "G_over_B": 0.5230327702736577,
+    "Hv_Chen_GPa": 14.192115253688264
   },
   {
     "task_id": "tile_07__sqs_008",
@@ -1725,7 +1867,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 42.68672704696655
+    "wall_s": 42.68672704696655,
+    "G_over_B": 0.49967841925947337,
+    "Hv_Chen_GPa": 12.796556037873685
   },
   {
     "task_id": "tile_08__sqs_000",
@@ -1749,7 +1893,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.8612596988678
+    "wall_s": 33.8612596988678,
+    "G_over_B": 0.5218499640459804,
+    "Hv_Chen_GPa": 13.833378207069003
   },
   {
     "task_id": "tile_08__sqs_001",
@@ -1773,7 +1919,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.641587734222412
+    "wall_s": 26.641587734222412,
+    "G_over_B": 0.5139039429073934,
+    "Hv_Chen_GPa": 13.481989812999934
   },
   {
     "task_id": "tile_08__sqs_002",
@@ -1797,7 +1945,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 30.337759256362915
+    "wall_s": 30.337759256362915,
+    "G_over_B": 0.512548679677,
+    "Hv_Chen_GPa": 13.496633170483832
   },
   {
     "task_id": "tile_08__sqs_003",
@@ -1821,7 +1971,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.18794083595276
+    "wall_s": 27.18794083595276,
+    "G_over_B": 0.5071757635038764,
+    "Hv_Chen_GPa": 13.266453734602823
   },
   {
     "task_id": "tile_08__sqs_004",
@@ -1845,7 +1997,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 34.212857723236084
+    "wall_s": 34.212857723236084,
+    "G_over_B": 0.5043787827618357,
+    "Hv_Chen_GPa": 13.006054351638745
   },
   {
     "task_id": "tile_08__sqs_005",
@@ -1869,7 +2023,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 37.91533708572388
+    "wall_s": 37.91533708572388,
+    "G_over_B": 0.5258410050184757,
+    "Hv_Chen_GPa": 14.053708614949105
   },
   {
     "task_id": "tile_08__sqs_006",
@@ -1893,7 +2049,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 30.256265878677368
+    "wall_s": 30.256265878677368,
+    "G_over_B": 0.5223187652032186,
+    "Hv_Chen_GPa": 14.005202804339465
   },
   {
     "task_id": "tile_08__sqs_007",
@@ -1917,7 +2075,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.88565683364868
+    "wall_s": 25.88565683364868,
+    "G_over_B": 0.5221113130537282,
+    "Hv_Chen_GPa": 14.022701933026617
   },
   {
     "task_id": "tile_08__sqs_008",
@@ -1941,7 +2101,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.87710452079773
+    "wall_s": 26.87710452079773,
+    "G_over_B": 0.5090936296096638,
+    "Hv_Chen_GPa": 13.491028025751138
   },
   {
     "task_id": "tile_09__sqs_000",
@@ -1965,7 +2127,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.20601725578308
+    "wall_s": 25.20601725578308,
+    "G_over_B": 0.5352410062614397,
+    "Hv_Chen_GPa": 14.605415263314047
   },
   {
     "task_id": "tile_09__sqs_001",
@@ -1989,7 +2153,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 35.22405242919922
+    "wall_s": 35.22405242919922,
+    "G_over_B": 0.5127300760288461,
+    "Hv_Chen_GPa": 13.327637629782014
   },
   {
     "task_id": "tile_09__sqs_002",
@@ -2013,7 +2179,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.709477424621582
+    "wall_s": 28.709477424621582,
+    "G_over_B": 0.5157788838377284,
+    "Hv_Chen_GPa": 13.708542018922245
   },
   {
     "task_id": "tile_09__sqs_003",
@@ -2037,7 +2205,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 32.408156633377075
+    "wall_s": 32.408156633377075,
+    "G_over_B": 0.5260577635190861,
+    "Hv_Chen_GPa": 14.343549574459164
   },
   {
     "task_id": "tile_09__sqs_004",
@@ -2061,7 +2231,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 30.830440521240234
+    "wall_s": 30.830440521240234,
+    "G_over_B": 0.5176039474594853,
+    "Hv_Chen_GPa": 13.554692748392203
   },
   {
     "task_id": "tile_09__sqs_005",
@@ -2085,7 +2257,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 55.584635972976685
+    "wall_s": 55.584635972976685,
+    "G_over_B": 0.468075843886851,
+    "Hv_Chen_GPa": 11.100961739329469
   },
   {
     "task_id": "tile_09__sqs_006",
@@ -2109,7 +2283,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.02112436294556
+    "wall_s": 33.02112436294556,
+    "G_over_B": 0.5178084316995575,
+    "Hv_Chen_GPa": 13.645880862801313
   },
   {
     "task_id": "tile_09__sqs_007",
@@ -2133,7 +2309,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.699164628982544
+    "wall_s": 27.699164628982544,
+    "G_over_B": 0.5274430292704838,
+    "Hv_Chen_GPa": 14.258987085563096
   },
   {
     "task_id": "tile_09__sqs_008",
@@ -2157,7 +2335,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.10814452171326
+    "wall_s": 33.10814452171326,
+    "G_over_B": 0.5089709503612203,
+    "Hv_Chen_GPa": 13.340493877247518
   },
   {
     "task_id": "tile_10__sqs_000",
@@ -2181,7 +2361,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 29.660746574401855
+    "wall_s": 29.660746574401855,
+    "G_over_B": 0.5196197696169619,
+    "Hv_Chen_GPa": 13.832054118040762
   },
   {
     "task_id": "tile_10__sqs_001",
@@ -2205,7 +2387,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 34.72789025306702
+    "wall_s": 34.72789025306702,
+    "G_over_B": 0.5120027667557956,
+    "Hv_Chen_GPa": 13.319168950801476
   },
   {
     "task_id": "tile_10__sqs_002",
@@ -2229,7 +2413,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 31.558905839920044
+    "wall_s": 31.558905839920044,
+    "G_over_B": 0.5172678480302101,
+    "Hv_Chen_GPa": 13.737145919465526
   },
   {
     "task_id": "tile_10__sqs_003",
@@ -2253,7 +2439,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.380303859710693
+    "wall_s": 26.380303859710693,
+    "G_over_B": 0.5170692827361733,
+    "Hv_Chen_GPa": 13.72641241017108
   },
   {
     "task_id": "tile_10__sqs_004",
@@ -2277,7 +2465,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 24.267439603805542
+    "wall_s": 24.267439603805542,
+    "G_over_B": 0.5294065547339455,
+    "Hv_Chen_GPa": 14.348916225033438
   },
   {
     "task_id": "tile_10__sqs_005",
@@ -2301,7 +2491,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 24.44471001625061
+    "wall_s": 24.44471001625061,
+    "G_over_B": 0.5266453518077466,
+    "Hv_Chen_GPa": 14.265080501612609
   },
   {
     "task_id": "tile_10__sqs_006",
@@ -2325,7 +2517,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.147584915161133
+    "wall_s": 28.147584915161133,
+    "G_over_B": 0.5143094098570288,
+    "Hv_Chen_GPa": 13.630200767981709
   },
   {
     "task_id": "tile_10__sqs_007",
@@ -2349,7 +2543,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.044355630874634
+    "wall_s": 26.044355630874634,
+    "G_over_B": 0.522077400212535,
+    "Hv_Chen_GPa": 14.043247203274323
   },
   {
     "task_id": "tile_10__sqs_008",
@@ -2373,7 +2569,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.893873691558838
+    "wall_s": 25.893873691558838,
+    "G_over_B": 0.5275971287231345,
+    "Hv_Chen_GPa": 14.29489866094632
   },
   {
     "task_id": "tile_11__sqs_000",
@@ -2397,7 +2595,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.359437227249146
+    "wall_s": 33.359437227249146,
+    "G_over_B": 0.512240370390113,
+    "Hv_Chen_GPa": 13.449781636883415
   },
   {
     "task_id": "tile_11__sqs_001",
@@ -2421,7 +2621,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.523688793182373
+    "wall_s": 27.523688793182373,
+    "G_over_B": 0.526712164441618,
+    "Hv_Chen_GPa": 14.25205066878883
   },
   {
     "task_id": "tile_11__sqs_002",
@@ -2445,7 +2647,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 28.59437108039856
+    "wall_s": 28.59437108039856,
+    "G_over_B": 0.5261402675100427,
+    "Hv_Chen_GPa": 14.323447587134186
   },
   {
     "task_id": "tile_11__sqs_003",
@@ -2469,7 +2673,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 25.15865921974182
+    "wall_s": 25.15865921974182,
+    "G_over_B": 0.5169283380952897,
+    "Hv_Chen_GPa": 13.648270221339764
   },
   {
     "task_id": "tile_11__sqs_004",
@@ -2493,7 +2699,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 23.082157373428345
+    "wall_s": 23.082157373428345,
+    "G_over_B": 0.5097000818407836,
+    "Hv_Chen_GPa": 13.28842747004822
   },
   {
     "task_id": "tile_11__sqs_005",
@@ -2517,7 +2725,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.79042363166809
+    "wall_s": 26.79042363166809,
+    "G_over_B": 0.5161388775741153,
+    "Hv_Chen_GPa": 13.825838670356475
   },
   {
     "task_id": "tile_11__sqs_006",
@@ -2541,7 +2751,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 33.75240778923035
+    "wall_s": 33.75240778923035,
+    "G_over_B": 0.5188017594785396,
+    "Hv_Chen_GPa": 13.916081139073459
   },
   {
     "task_id": "tile_11__sqs_007",
@@ -2565,7 +2777,9 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 26.04146981239319
+    "wall_s": 26.04146981239319,
+    "G_over_B": 0.516110786925742,
+    "Hv_Chen_GPa": 13.554669537964443
   },
   {
     "task_id": "tile_11__sqs_008",
@@ -2589,6 +2803,8 @@
     "steps": 200,
     "energy_model": "uma",
     "uma_task": "omat",
-    "wall_s": 27.116405248641968
+    "wall_s": 27.116405248641968,
+    "G_over_B": 0.5234539479579169,
+    "Hv_Chen_GPa": 14.024607738869538
   }
 ]

@@ -39,6 +39,7 @@ Compute the full elastic tensor.
 - Shear modulus
 - Young's modulus
 - Poisson ratio
+- Chen Vickers hardness \(H_V = 2(k^2 G)^{0.585}-3\), \(k=G/B\) (GPa)
 
 ### Ensemble statistics
 

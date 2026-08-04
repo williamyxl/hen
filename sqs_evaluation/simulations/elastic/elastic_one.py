@@ -41,7 +41,11 @@ def vrh_cubic(c11: float, c12: float, c44: float) -> dict[str, float]:
     b, g = bv, 0.5 * (gv + gr)
     e = 9.0 * b * g / (3.0 * b + g)
     nu = (3.0 * b - 2.0 * g) / (2.0 * (3.0 * b + g))
-    return {"B": b, "G": g, "E": e, "nu": nu}
+    from hardness import chen_fields  # noqa: WPS433
+
+    out = {"B": b, "G": g, "E": e, "nu": nu}
+    out.update(chen_fields(b, g))
+    return out
 
 
 def ionic_relax(atoms, model, calc, *, fmax: float, steps: int, logfile):
@@ -144,6 +148,8 @@ def main() -> None:
         "G_GPa": der["G"],
         "E_GPa": der["E"],
         "nu": der["nu"],
+        "G_over_B": der["G_over_B"],
+        "Hv_Chen_GPa": der["Hv_Chen_GPa"],
         "strains": strains,
         "fmax": args.fmax,
         "steps": args.steps,
@@ -156,7 +162,7 @@ def main() -> None:
     print(
         f"OK task={args.task_id} C11={c11:.2f} C12={c12:.2f} C44={c44:.2f} GPa  "
         f"B={der['B']:.2f} G={der['G']:.2f} E={der['E']:.2f} nu={der['nu']:.4f}  "
-        f"wall_s={wall_s:.1f}"
+        f"Hv_Chen={der['Hv_Chen_GPa']:.2f} GPa  wall_s={wall_s:.1f}"
     )
 
 

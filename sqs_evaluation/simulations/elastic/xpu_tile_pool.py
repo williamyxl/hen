@@ -337,6 +337,8 @@ def progress_line(payload: dict[str, Any]) -> str:
 
 
 def merge_elastic_results(tasks: dict[str, Task], out_root: Path) -> Path | None:
+    from hardness import attach_chen_hardness  # noqa: WPS433
+
     rows: list[dict[str, Any]] = []
     for tid, t in sorted(tasks.items()):
         if t.state not in ("done", "skipped"):
@@ -344,29 +346,28 @@ def merge_elastic_results(tasks: dict[str, Task], out_root: Path) -> Path | None
         path = Path(t.out_dir) / "result.json"
         if not path.is_file():
             continue
-        row = json.loads(path.read_text(encoding="utf-8"))
-        rows.append(row)
+        rows.append(attach_chen_hardness(json.loads(path.read_text(encoding="utf-8"))))
     if not rows:
         return None
     out = out_root / "elastic_all.json"
     atomic_write_json(out, rows)
-    # compact CSV-ish summary
-    summary = []
-    for r in rows:
-        summary.append(
-            {
-                "task_id": r.get("task_id"),
-                "formula": r.get("formula"),
-                "C11_GPa": r.get("C11_GPa"),
-                "C12_GPa": r.get("C12_GPa"),
-                "C44_GPa": r.get("C44_GPa"),
-                "B_GPa": r.get("B_GPa"),
-                "G_GPa": r.get("G_GPa"),
-                "E_GPa": r.get("E_GPa"),
-                "nu": r.get("nu"),
-                "wall_s": r.get("wall_s"),
-            }
-        )
+    summary = [
+        {
+            "task_id": r.get("task_id"),
+            "formula": r.get("formula"),
+            "C11_GPa": r.get("C11_GPa"),
+            "C12_GPa": r.get("C12_GPa"),
+            "C44_GPa": r.get("C44_GPa"),
+            "B_GPa": r.get("B_GPa"),
+            "G_GPa": r.get("G_GPa"),
+            "E_GPa": r.get("E_GPa"),
+            "nu": r.get("nu"),
+            "G_over_B": r.get("G_over_B"),
+            "Hv_Chen_GPa": r.get("Hv_Chen_GPa"),
+            "wall_s": r.get("wall_s"),
+        }
+        for r in rows
+    ]
     atomic_write_json(out_root / "elastic_summary.json", summary)
     return out
 

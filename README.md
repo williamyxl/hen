@@ -9,6 +9,8 @@ Monte Carlo special quasirandom structure (SQS) sampling and property evaluation
 | [`plan/`](plan/) | Target properties and computation plan |
 | [`sqs_sampling/`](sqs_sampling/) | Rosenbluth CBMC SQS sampler (GFN2-xTB or UMA, 10 trials/step) |
 | [`sqs_evaluation/`](sqs_evaluation/) | Numbered templates: SRO, relax, LLD, elastic, CP2K validation |
+| [`docs/w12_nacl_xccl_recipe.md`](docs/w12_nacl_xccl_recipe.md) | **Final** NaCl W=12+ XCCL recipe (max N=32, entrypoints) |
+| [`docs/multinode_xccl_n32_optimization_plan.md`](docs/multinode_xccl_n32_optimization_plan.md) | Multinode XCCL bottleneck / optimization plan (N=32) |
 | [`docs/finding_xpu_ag_fd_cliff_n10.md`](docs/finding_xpu_ag_fd_cliff_n10.md) | XPU FP64 AG≠FD root cause (`prepare_wigner` einsum) + fix |
 
 ## Setup

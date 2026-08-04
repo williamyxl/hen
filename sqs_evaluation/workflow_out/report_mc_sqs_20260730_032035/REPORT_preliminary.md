@@ -1,6 +1,6 @@
 # Preliminary SQS evaluation — `mc_sqs_20260730_032035`
 
-Generated: 2026-08-04T02:35:07.896185+00:00
+Generated: 2026-08-04T03:59:40.879608+00:00
 
 ## Scope
 
@@ -35,6 +35,10 @@ Generated: 2026-08-04T02:35:07.896185+00:00
 | G (GPa) | 141.09 ± 2.82  [128.62, 146.70] |
 | E (GPa) | 360.91 ± 6.27  [333.79, 373.00] |
 | ν | 0.2791 ± 0.0041  [0.2704, 0.2975] |
+| G/B | 0.5182 ± 0.0111  [0.4681, 0.5423] |
+| H_V Chen (GPa) | 13.77 ± 0.59  [11.10, 14.99] |
+
+Chen hardness: H_V = 2(k^2 G)^0.585 - 3, k = G/B (Chen et al., Intermetallics 19, 1275, 2011); derived from VRH B, G.
 
 ## Equation of state (equal multi-scheme ASE fits)
 
@@ -52,16 +56,16 @@ Isotropic E–V scan (scales 0.94–1.06), single-point UMA; all ASE schemes fit
 | `taylor` | 288.55 ± 0.17 | 2399.24 ± 0.76 |
 | `vinet` | 285.70 ± 0.17 | 2399.26 ± 0.76 |
 
-Elastic VRH B (272.27 GPa) vs EOS birchmurnaghan B (285.50 GPa): Δ ≈ +13.22 GPa.
-
 ## Artifacts
 
+- `REPORT_preliminary_interactive.html` — Plotly interactive plots (open in a browser; needs CDN)
 - `combined_table.json` — one record per `task_id`
-- `combined_table.csv` — flat table (EOS columns `eos_B_GPa__<scheme>`, `eos_V0_A3__<scheme>`)
+- `combined_table.csv` — flat table (includes `Hv_Chen_GPa`, EOS `eos_B_GPa__*`)
 - `stats.json` — aggregate mean/std/min/max
 
 ## Notes
 
 - Formation enthalpies reuse cell_opt `energy_eV` with elemental refs in `refs/uma/elemental_refs.json` (μ_N on `omat`).
+- Chen H_V from elastic VRH B, G (no extra XPU work).
 - SRO Warren–Cowley and full LLD bond histograms live under `post_*/sro/` and `post_*/lld/` (not flattened here).
 - This is a **preliminary** compile; DOS / DFT cross-checks not included.

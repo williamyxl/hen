@@ -26,6 +26,12 @@ def _load(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _chen_hv(B: float, G: float) -> tuple[float, float]:
+    """Return (G/B, Hv_Chen_GPa). Chen et al., Intermetallics 19, 1275 (2011)."""
+    k = G / B
+    return k, float(2.0 * (k * k * G) ** 0.585 - 3.0)
+
+
 def _mean_std(vals: list[float]) -> dict[str, float]:
     if not vals:
         return {"n": 0, "mean": float("nan"), "std": float("nan"), "min": float("nan"), "max": float("nan")}
@@ -94,6 +100,8 @@ def compile_rows(workflow_out: Path, run_tag: str) -> tuple[list[dict[str, Any]]
             "elastic_G_GPa": e.get("G_GPa"),
             "elastic_E_GPa": e.get("E_GPa"),
             "elastic_nu": e.get("nu"),
+            "G_over_B": e.get("G_over_B"),
+            "Hv_Chen_GPa": e.get("Hv_Chen_GPa"),
             "eos_n_fits_ok": o.get("n_fits_ok"),
             "eos_n_fits": o.get("n_fits"),
             "has_post": tid in post,
@@ -101,8 +109,13 @@ def compile_rows(workflow_out: Path, run_tag: str) -> tuple[list[dict[str, Any]]
             "has_eos": tid in eos,
             "has_cell_opt": bool(c),
         }
-        for scheme, b in (o.get("B_GPa_by_scheme") or {}).items():
-            row[f"eos_B_GPa__{scheme}"] = b
+        b, g = row.get("elastic_B_GPa"), row.get("elastic_G_GPa")
+        if isinstance(b, (int, float)) and isinstance(g, (int, float)) and b > 0 and g > 0:
+            k, hv = _chen_hv(float(b), float(g))
+            row["G_over_B"] = k
+            row["Hv_Chen_GPa"] = hv
+        for scheme, b_eos in (o.get("B_GPa_by_scheme") or {}).items():
+            row[f"eos_B_GPa__{scheme}"] = b_eos
         for scheme, v0 in (o.get("V0_A3_by_scheme") or {}).items():
             row[f"eos_V0_A3__{scheme}"] = v0
         rows.append(row)
@@ -131,6 +144,8 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "elastic_G_GPa",
         "elastic_E_GPa",
         "elastic_nu",
+        "G_over_B",
+        "Hv_Chen_GPa",
         "eos_n_fits_ok",
         "eos_n_fits",
     ]
@@ -166,6 +181,8 @@ def build_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "G_GPa": _mean_std(col("elastic_G_GPa")),
             "E_GPa": _mean_std(col("elastic_E_GPa")),
             "nu": _mean_std(col("elastic_nu")),
+            "G_over_B": _mean_std(col("G_over_B")),
+            "Hv_Chen_GPa": _mean_std(col("Hv_Chen_GPa")),
         },
         "eos_B_GPa": {},
         "eos_V0_A3": {},
@@ -226,6 +243,11 @@ def write_report(
         f"| G (GPa) | {_fmt(el['G_GPa'], '.2f')} |",
         f"| E (GPa) | {_fmt(el['E_GPa'], '.2f')} |",
         f"| ν | {_fmt(el['nu'], '.4f')} |",
+        f"| G/B | {_fmt(el['G_over_B'], '.4f')} |",
+        f"| H_V Chen (GPa) | {_fmt(el['Hv_Chen_GPa'], '.2f')} |",
+        "",
+        "Chen hardness: H_V = 2(k^2 G)^0.585 - 3, k = G/B "
+        "(Chen et al., Intermetallics 19, 1275, 2011); derived from VRH B, G.",
         "",
         "## Equation of state (equal multi-scheme ASE fits)",
         "",
@@ -240,25 +262,19 @@ def write_report(
         lines.append(
             f"| `{scheme}` | {b['mean']:.2f} ± {b['std']:.2f} | {v['mean']:.2f} ± {v['std']:.2f} |"
         )
-    # Elastic B vs EOS birchmurnaghan
-    bm = stats["eos_B_GPa"].get("birchmurnaghan")
-    if bm and el["B_GPa"]["n"]:
-        lines += [
-            "",
-            f"Elastic VRH B ({el['B_GPa']['mean']:.2f} GPa) vs EOS birchmurnaghan "
-            f"B ({bm['mean']:.2f} GPa): Δ ≈ {bm['mean'] - el['B_GPa']['mean']:+.2f} GPa.",
-        ]
     lines += [
         "",
         "## Artifacts",
         "",
+        "- `REPORT_preliminary_interactive.html` — Plotly interactive plots (open in a browser; needs CDN)",
         "- `combined_table.json` — one record per `task_id`",
-        "- `combined_table.csv` — flat table (EOS columns `eos_B_GPa__<scheme>`, `eos_V0_A3__<scheme>`)",
+        "- `combined_table.csv` — flat table (includes `Hv_Chen_GPa`, EOS `eos_B_GPa__*`)",
         "- `stats.json` — aggregate mean/std/min/max",
         "",
         "## Notes",
         "",
         "- Formation enthalpies reuse cell_opt `energy_eV` with elemental refs in `refs/uma/elemental_refs.json` (μ_N on `omat`).",
+        "- Chen H_V from elastic VRH B, G (no extra XPU work).",
         "- SRO Warren–Cowley and full LLD bond histograms live under `post_*/sro/` and `post_*/lld/` (not flattened here).",
         "- This is a **preliminary** compile; DOS / DFT cross-checks not included.",
         "",
