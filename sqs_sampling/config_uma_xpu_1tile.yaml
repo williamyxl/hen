@@ -1,4 +1,4 @@
-# Shared config for 12 independent single-tile CBMC ranks (see mc_sqs_uma_1tile.pbs).
+# Shared config for 12 independent single-tile CBMC ranks (see mc_sqs_uma_12tiles.pbs).
 # PBS creates runs/mc_sqs_<stamp>/tile_XX and passes --run-dir / --seed per rank.
 
 prototype: rocksalt

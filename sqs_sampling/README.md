@@ -43,13 +43,14 @@ estimate and `atoms.info["spin"]=0` (spin off). Calibration uses the same `super
 
 ### Aurora 12-tile PBS (one node)
 
-[`mc_sqs_uma_1tile.pbs`](mc_sqs_uma_1tile.pbs) launches **12 independent** single-tile
+[`mc_sqs_uma_12tiles.pbs`](mc_sqs_uma_12tiles.pbs) launches **12 independent** single-tile
 `mc_sqs.py` processes on one Aurora node (one FLAT tile each), with ALCF CPU/NUMA
 binding (`numactl --physcpubind=… --membind=0|1`, `ZE_AFFINITY_MASK=0..11`).
 
 ```bash
-qsub sqs_sampling/mc_sqs_uma_1tile.pbs   # from hen/
-# or: qsub mc_sqs_uma_1tile.pbs          # from sqs_sampling/
+qsub sqs_sampling/mc_sqs_uma_12tiles.pbs   # from hen/
+# or: qsub mc_sqs_uma_12tiles.pbs          # from sqs_sampling/
+# 100k-step capacity campaign: mc_sqs_uma_12tiles_100k.pbs
 ```
 
 Config: [`config_uma_xpu_1tile.yaml`](config_uma_xpu_1tile.yaml) (`uma_workers: 1`, 3×3×3).
