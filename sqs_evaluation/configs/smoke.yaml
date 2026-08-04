@@ -1,0 +1,25 @@
+# Smoke eval: one SQS frame, sro + short cell_opt only.
+energy:
+  model: uma
+  device: xpu
+  dtype: float64
+  uma_model: /lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt
+  uma_task: omat
+  uma_workers: 1
+
+properties:
+  - sro
+  - cell_opt
+
+property_options:
+  cell_opt:
+    fmax: 0.05
+    steps: 50
+    relax_cell: true
+
+  sro:
+    cutoff: 3.5
+    shell_edges: [0.0, 2.6, 3.5]
+
+  formation_enthalpy:
+    elemental_eref: refs/uma/elemental_refs.json

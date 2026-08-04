@@ -9,10 +9,12 @@
 #PBS -j oe
 #PBS -k doe
 
-# Parallel UMA elemental refs on one Aurora node (6 independent species).
-# Species → tiles 0–5; tiles 6–11 idle (only 6 refs: Ti Zr Hf Nb Ta N).
+# Parallel UMA elemental refs on one Aurora node (6 independent species → tiles 0–5).
 # Output: sqs_evaluation/refs/uma/elemental_refs.json
 # From hen/: qsub sqs_evaluation/simulations/cell_opt/build_elemental_refs_uma.pbs
+
+# No -u: conda activate.d/mpivars references unset SETVARS_CALL.
+set -eo pipefail
 
 module reset
 module list
@@ -24,54 +26,61 @@ export ftp_proxy="http://proxy.alcf.anl.gov:3128"
 export ZE_FLAT_DEVICE_HIERARCHY=FLAT
 export ZE_ENABLE_PCI_ID_DEVICE_ORDER=1
 
-source /lus/flare/projects/MOFA/xiaoliyan/software/miniforge3/etc/profile.d/conda.sh
-conda activate /lus/flare/projects/MatSciAI/xiaoliyan/software/conda/envs/hen-xpu
-
+# hen-xpu: conda activate when MOFA is readable; else PATH-only with hen-xpu/lib
+# FIRST on LD_LIBRARY_PATH (else libsycl + module libur → urDeviceWaitExp).
 HEN=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen
+FXPU_PREFIX=/lus/flare/projects/MatSciAI/xiaoliyan/software/conda/envs/hen-xpu
+# shellcheck disable=SC1091
+source "${HEN}/scripts/activate_hen_xpu.sh"
+# Prefer conda libur over module oneAPI (activate.d alone is not enough).
+export LD_LIBRARY_PATH="${FXPU_PREFIX}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+PY="$(command -v python)"
+
 EVAL="${HEN}/sqs_evaluation"
 SCRIPT="${EVAL}/simulations/cell_opt/build_elemental_refs.py"
 UMA_MODEL="${HEN}/uma-cache/uma-s-1p2.pt"
 OUT_DIR="${EVAL}/refs/uma"
+COMMON=(
+  "${PY}" "${SCRIPT}"
+  --energy uma --device xpu --dtype float64
+  --uma-model "${UMA_MODEL}"
+  --uma-task omat --uma-task-n2 omat
+  --fmax 0.01 --steps 300
+  --out-dir "${OUT_DIR}"
+)
 
 mkdir -p "${OUT_DIR}/partials"
 cd "${OUT_DIR}"
 
 echo "job_id=${PBS_JOBID:-local}  host=$(hostname)  out_dir=${OUT_DIR}"
+echo "python=${PY}  LD_LIBRARY_PATH(head)=${LD_LIBRARY_PATH%%:*}"
+"${PY}" -c "import sys, torch; print(sys.executable); print('torch', torch.__version__)"
 
-COMMON=(
-  python "${SCRIPT}"
-  --energy uma --device xpu --dtype float64
-  --uma-model "${UMA_MODEL}"
-  --uma-task omat --uma-task-n2 omol
-  --fmax 0.01 --steps 300
-  --out-dir "${OUT_DIR}"
-)
-
-# Tiles 0–5 → NUMA 0; CPU lists from ALCF 12-rank example (skip OS cores 0, 52).
-# Only 6 species → 6 tiles; remaining tiles unused.
-ZE_AFFINITY_MASK=0  numactl --physcpubind=1-8   --membind=0 \
+# Tiles 0–5 / NUMA 0 (ALCF 12-rank CPU lists; skip OS core 0).
+ZE_AFFINITY_MASK=0 numactl --physcpubind=1-8   --membind=0 \
   "${COMMON[@]}" --species Ti > "${OUT_DIR}/tile_00_Ti.log" 2>&1 &
 
-ZE_AFFINITY_MASK=1  numactl --physcpubind=9-16  --membind=0 \
+ZE_AFFINITY_MASK=1 numactl --physcpubind=9-16  --membind=0 \
   "${COMMON[@]}" --species Zr > "${OUT_DIR}/tile_01_Zr.log" 2>&1 &
 
-ZE_AFFINITY_MASK=2  numactl --physcpubind=17-24 --membind=0 \
+ZE_AFFINITY_MASK=2 numactl --physcpubind=17-24 --membind=0 \
   "${COMMON[@]}" --species Hf > "${OUT_DIR}/tile_02_Hf.log" 2>&1 &
 
-ZE_AFFINITY_MASK=3  numactl --physcpubind=25-32 --membind=0 \
+ZE_AFFINITY_MASK=3 numactl --physcpubind=25-32 --membind=0 \
   "${COMMON[@]}" --species Nb > "${OUT_DIR}/tile_03_Nb.log" 2>&1 &
 
-ZE_AFFINITY_MASK=4  numactl --physcpubind=33-40 --membind=0 \
+ZE_AFFINITY_MASK=4 numactl --physcpubind=33-40 --membind=0 \
   "${COMMON[@]}" --species Ta > "${OUT_DIR}/tile_04_Ta.log" 2>&1 &
 
-ZE_AFFINITY_MASK=5  numactl --physcpubind=41-48 --membind=0 \
+ZE_AFFINITY_MASK=5 numactl --physcpubind=41-48 --membind=0 \
   "${COMMON[@]}" --species N  > "${OUT_DIR}/tile_05_N.log"  2>&1 &
 
 wait
 
-python "${SCRIPT}" --merge \
+"${PY}" "${SCRIPT}" --merge \
   --out-dir "${OUT_DIR}" \
   --out "${OUT_DIR}/elemental_refs.json"
 
 echo "wrote ${OUT_DIR}/elemental_refs.json"
 ls -la "${OUT_DIR}" "${OUT_DIR}/partials"
+"${PY}" -c "import json; d=json.load(open('${OUT_DIR}/elemental_refs.json')); print('species', sorted(d['per_atom_eV'])); print(d['per_atom_eV'])"

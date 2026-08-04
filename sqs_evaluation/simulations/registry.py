@@ -237,7 +237,8 @@ def run_elastic(
         atoms = model.prepare_atoms(atoms)
         atoms.calc = calc
         LBFGS(atoms, logfile=None).run(fmax=fmax, steps=steps)
-        stress = -np.asarray(atoms.get_stress(voigt=False), dtype=float) * EV_A3_TO_GPA
+        # ASE stress is σ = (1/V) ∂E/∂ε (tension > 0). Do not negate.
+        stress = np.asarray(atoms.get_stress(voigt=False), dtype=float) * EV_A3_TO_GPA
         return atoms, stress
 
     def vrh(c11, c12, c44):
@@ -298,9 +299,15 @@ def run_eos(
     volumes_scale: list[float] | None = None,
     **_kwargs: Any,
 ) -> dict[str, Any]:
-    """Equation of state: E(V) scans + Birch–Murnaghan fit (ASE)."""
+    """Equation of state: E(V) scans + equal multi-scheme ASE fits."""
+    import sys
+
     import numpy as np
-    from ase.eos import EquationOfState
+
+    _eos_dir = Path(__file__).resolve().parent / "eos"
+    if str(_eos_dir) not in sys.path:
+        sys.path.insert(0, str(_eos_dir))
+    from eos_fit import attach_fits  # noqa: WPS433
 
     if model.mode != "ase":
         raise NotImplementedError(f"eos requires ASE backend; got {model.name}")
@@ -322,19 +329,16 @@ def run_eos(
             volumes.append(float(atoms.get_volume()))
             energies.append(e)
             write(out_dir / f"sqs_{n:03d}_eos_s{s:.3f}.extxyz", atoms)
-        eos = EquationOfState(volumes, energies, eos="birchmurnaghan")
-        v0, e0, B = eos.fit()
-        row = {
-            "frame": n,
-            "formula": base.get_chemical_formula(),
-            "V0_A3": float(v0),
-            "E0_eV": float(e0),
-            "B_eV_A3": float(B),
-            "B_GPa": float(B * 160.21766208),
-            "volumes_A3": volumes,
-            "energies_eV": energies,
-            "energy_model": model.name,
-        }
+        row = attach_fits(
+            {
+                "frame": n,
+                "formula": base.get_chemical_formula(),
+                "volumes_scale": scales,
+                "volumes_A3": volumes,
+                "energies_eV": energies,
+                "energy_model": model.name,
+            }
+        )
         results.append(row)
     out = out_dir / "eos.json"
     out.write_text(json.dumps(results, indent=2), encoding="utf-8")

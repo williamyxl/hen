@@ -1,0 +1,25 @@
+{
+  "n_frames": 108,
+  "cell_opt_dir": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/cell_opt_mc_sqs_20260730_032035",
+  "eref": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/refs/uma/elemental_refs.json",
+  "energy_reused": true,
+  "delta_h_f_eV_per_atom": {
+    "min": -1.427099434728241,
+    "mean": -1.4235627755948979,
+    "max": -1.4202690235348268,
+    "std": 0.0012610430921343022
+  },
+  "lld_rmsd_A": {
+    "min": 0.09469510495346506,
+    "mean": 0.10567760018059362,
+    "max": 0.11462386010751477,
+    "std": 0.003832605777824216
+  },
+  "outputs": {
+    "formation_enthalpy": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/post_mc_sqs_20260730_032035/formation_enthalpy.json",
+    "summary": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/post_mc_sqs_20260730_032035/summary.json",
+    "sro_dir": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/post_mc_sqs_20260730_032035/sro",
+    "lld_dir": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/post_mc_sqs_20260730_032035/lld",
+    "all_relaxed": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/post_mc_sqs_20260730_032035/all_relaxed.extxyz"
+  }
+}

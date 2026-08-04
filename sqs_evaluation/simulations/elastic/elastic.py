@@ -66,7 +66,8 @@ def ionic_relax(atoms, calc, fmax: float, steps: int):
     atoms = atoms.copy()
     atoms.calc = calc
     LBFGS(atoms, logfile=None).run(fmax=fmax, steps=steps)
-    stress = -np.asarray(atoms.get_stress(voigt=False), dtype=float) * EV_A3_TO_GPA
+    # ASE stress is σ = (1/V) ∂E/∂ε (tension > 0). Do not negate.
+    stress = np.asarray(atoms.get_stress(voigt=False), dtype=float) * EV_A3_TO_GPA
     return atoms, stress
 
 

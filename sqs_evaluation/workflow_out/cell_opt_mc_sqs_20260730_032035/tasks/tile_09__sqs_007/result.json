@@ -1,0 +1,33 @@
+{
+  "task_id": "tile_09__sqs_007",
+  "structure": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_sampling/runs/mc_sqs_20260730_032035/tile_09/sqs_007.extxyz",
+  "formula": "Hf22N108Nb21Ta21Ti22Zr22",
+  "n_atoms": 216,
+  "energy_eV": -2244.219224045497,
+  "energy_model": "uma",
+  "uma_task": "omat",
+  "fmax": 0.01,
+  "steps_max": 500,
+  "relax_cell": true,
+  "converged": true,
+  "wall_s": 15.459699869155884,
+  "cell_A": [
+    [
+      13.386215527808336,
+      -0.00018812018422504232,
+      -0.0006446766956576281
+    ],
+    [
+      -0.0001881707003179318,
+      13.385688113709914,
+      0.0009448521747187294
+    ],
+    [
+      -0.0006446626392430048,
+      0.0009443061261839905,
+      13.393608196724205
+    ]
+  ],
+  "volume_A3": 2399.9163364670926,
+  "delta_h_f_eV_per_atom": -1.4241797820601008
+}

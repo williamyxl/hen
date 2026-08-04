@@ -43,6 +43,14 @@ mc_trajectory.extxyz
 *.bak
 *.tmp
 
+# PBS job stdout/stderr dumped into the repo root (or sqs_sampling/)
+/hen_*.o[0-9]*
+/mn_*.o[0-9]*
+/nacl_*.o[0-9]*
+sqs_sampling/hen_*.o[0-9]*
+sqs_evaluation/**/worker.log
+sqs_evaluation/**/__pycache__/
+
 # Large models / checkpoints (store paths locally)
 *.pt
 *.pth

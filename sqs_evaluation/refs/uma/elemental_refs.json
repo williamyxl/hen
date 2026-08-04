@@ -1,0 +1,144 @@
+{
+  "energy_method": "uma",
+  "device": "xpu",
+  "dtype": "float64",
+  "uma_model": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
+  "uma_task_metals": "omat",
+  "uma_task_n2": "omat",
+  "n_reference": "0.5_N2",
+  "definition": "\u0394H_f / N_atoms = E(crystal)/N - \u03a3_i \u03bc_i / N, with \u03bc_M = E(bulk metal)/atom and \u03bc_N = E(N2)/2",
+  "per_atom_eV": {
+    "Hf": -9.93504955339326,
+    "N": -8.32367890897711,
+    "Nb": -10.090139143917982,
+    "Ta": -11.813074347377045,
+    "Ti": -7.7925305674420855,
+    "Zr": -8.530219226155173
+  },
+  "details": {
+    "Hf": {
+      "structure": "hcp",
+      "n_atoms": 2,
+      "energy_eV": -19.87009910678652,
+      "energy_per_atom_eV": -9.93504955339326,
+      "cell_A": [
+        [
+          3.2,
+          0.0,
+          0.0
+        ],
+        [
+          -1.6,
+          2.7712812921102037,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          5.0624
+        ]
+      ]
+    },
+    "N": {
+      "structure": "N2",
+      "n_atoms": 2,
+      "energy_eV": -16.64735781795422,
+      "energy_per_atom_eV": -8.32367890897711,
+      "n_reference": "0.5_N2",
+      "bond_length_A": 1.1127898561163967,
+      "uma_task": "omat"
+    },
+    "Nb": {
+      "structure": "bcc",
+      "n_atoms": 1,
+      "energy_eV": -10.090139143917982,
+      "energy_per_atom_eV": -10.090139143917982,
+      "cell_A": [
+        [
+          -1.65,
+          1.65,
+          1.65
+        ],
+        [
+          1.65,
+          -1.65,
+          1.65
+        ],
+        [
+          1.65,
+          1.65,
+          -1.65
+        ]
+      ]
+    },
+    "Ta": {
+      "structure": "bcc",
+      "n_atoms": 1,
+      "energy_eV": -11.813074347377045,
+      "energy_per_atom_eV": -11.813074347377045,
+      "cell_A": [
+        [
+          -1.655,
+          1.655,
+          1.655
+        ],
+        [
+          1.655,
+          -1.655,
+          1.655
+        ],
+        [
+          1.655,
+          1.655,
+          -1.655
+        ]
+      ]
+    },
+    "Ti": {
+      "structure": "hcp",
+      "n_atoms": 2,
+      "energy_eV": -15.585061134884171,
+      "energy_per_atom_eV": -7.7925305674420855,
+      "cell_A": [
+        [
+          2.95,
+          0.0,
+          0.0
+        ],
+        [
+          -1.475,
+          2.554774941164094,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          4.6846000000000005
+        ]
+      ]
+    },
+    "Zr": {
+      "structure": "hcp",
+      "n_atoms": 2,
+      "energy_eV": -17.060438452310347,
+      "energy_per_atom_eV": -8.530219226155173,
+      "cell_A": [
+        [
+          3.23,
+          0.0,
+          0.0
+        ],
+        [
+          -1.615,
+          2.7972620542237365,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          5.14539
+        ]
+      ]
+    }
+  }
+}

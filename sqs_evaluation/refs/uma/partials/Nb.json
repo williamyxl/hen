@@ -1,0 +1,39 @@
+{
+  "species": "Nb",
+  "energy_method": "uma",
+  "device": "xpu",
+  "dtype": "float64",
+  "uma_model": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
+  "uma_task_metals": "omat",
+  "uma_task_n2": "omol",
+  "n_reference": "0.5_N2",
+  "definition": "\u0394H_f / N_atoms = E(crystal)/N - \u03a3_i \u03bc_i / N, with \u03bc_M = E(bulk metal)/atom and \u03bc_N = E(N2)/2",
+  "per_atom_eV": {
+    "Nb": -10.090139143917982
+  },
+  "details": {
+    "Nb": {
+      "structure": "bcc",
+      "n_atoms": 1,
+      "energy_eV": -10.090139143917982,
+      "energy_per_atom_eV": -10.090139143917982,
+      "cell_A": [
+        [
+          -1.65,
+          1.65,
+          1.65
+        ],
+        [
+          1.65,
+          -1.65,
+          1.65
+        ],
+        [
+          1.65,
+          1.65,
+          -1.65
+        ]
+      ]
+    }
+  }
+}

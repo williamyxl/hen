@@ -237,6 +237,9 @@ def merge_partials(out_dir: Path, out: Path, *, require_all: bool = True) -> dic
                     "definition",
                 )
             }
+        # N partial owns uma_task_n2 (metals may still carry a stale value).
+        if part.get("species") == "N" and part.get("uma_task_n2") is not None:
+            meta["uma_task_n2"] = part["uma_task_n2"]
         per_atom.update({k: float(v) for k, v in part["per_atom_eV"].items()})
         details.update(part["details"])
     assert meta is not None
@@ -262,7 +265,8 @@ def main() -> None:
         default="/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
     )
     parser.add_argument("--uma-task", default="omat")
-    parser.add_argument("--uma-task-n2", default="omol")
+    # Same task as metals/nitrides so μ_N is on a consistent energy scale.
+    parser.add_argument("--uma-task-n2", default="omat")
     parser.add_argument(
         "--species",
         type=str,

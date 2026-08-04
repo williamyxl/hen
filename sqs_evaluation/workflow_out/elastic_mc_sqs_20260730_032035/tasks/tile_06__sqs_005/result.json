@@ -1,0 +1,24 @@
+{
+  "task_id": "tile_06__sqs_005",
+  "structure": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/sqs_evaluation/workflow_out/cell_opt_mc_sqs_20260730_032035/tasks/tile_06__sqs_005/relaxed.extxyz",
+  "formula": "Hf22N108Nb21Ta21Ti22Zr22",
+  "n_atoms": 216,
+  "C11_GPa": 551.9440747427584,
+  "C12_GPa": 139.9696868085246,
+  "C44_GPa": 114.85346820959468,
+  "B_GPa": 277.29448278660254,
+  "G_GPa": 145.4282294167756,
+  "E_GPa": 371.36362859590673,
+  "nu": 0.276793474297325,
+  "strains": [
+    -0.01,
+    -0.005,
+    0.005,
+    0.01
+  ],
+  "fmax": 0.01,
+  "steps": 200,
+  "energy_model": "uma",
+  "uma_task": "omat",
+  "wall_s": 26.120218992233276
+}

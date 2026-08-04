@@ -1,0 +1,39 @@
+{
+  "species": "Ti",
+  "energy_method": "uma",
+  "device": "xpu",
+  "dtype": "float64",
+  "uma_model": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
+  "uma_task_metals": "omat",
+  "uma_task_n2": "omol",
+  "n_reference": "0.5_N2",
+  "definition": "\u0394H_f / N_atoms = E(crystal)/N - \u03a3_i \u03bc_i / N, with \u03bc_M = E(bulk metal)/atom and \u03bc_N = E(N2)/2",
+  "per_atom_eV": {
+    "Ti": -7.7925305674420855
+  },
+  "details": {
+    "Ti": {
+      "structure": "hcp",
+      "n_atoms": 2,
+      "energy_eV": -15.585061134884171,
+      "energy_per_atom_eV": -7.7925305674420855,
+      "cell_A": [
+        [
+          2.95,
+          0.0,
+          0.0
+        ],
+        [
+          -1.475,
+          2.554774941164094,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          4.6846000000000005
+        ]
+      ]
+    }
+  }
+}

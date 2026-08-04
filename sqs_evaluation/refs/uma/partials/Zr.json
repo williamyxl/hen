@@ -1,0 +1,39 @@
+{
+  "species": "Zr",
+  "energy_method": "uma",
+  "device": "xpu",
+  "dtype": "float64",
+  "uma_model": "/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen/uma-cache/uma-s-1p2.pt",
+  "uma_task_metals": "omat",
+  "uma_task_n2": "omol",
+  "n_reference": "0.5_N2",
+  "definition": "\u0394H_f / N_atoms = E(crystal)/N - \u03a3_i \u03bc_i / N, with \u03bc_M = E(bulk metal)/atom and \u03bc_N = E(N2)/2",
+  "per_atom_eV": {
+    "Zr": -8.530219226155173
+  },
+  "details": {
+    "Zr": {
+      "structure": "hcp",
+      "n_atoms": 2,
+      "energy_eV": -17.060438452310347,
+      "energy_per_atom_eV": -8.530219226155173,
+      "cell_A": [
+        [
+          3.23,
+          0.0,
+          0.0
+        ],
+        [
+          -1.615,
+          2.7972620542237365,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          5.14539
+        ]
+      ]
+    }
+  }
+}

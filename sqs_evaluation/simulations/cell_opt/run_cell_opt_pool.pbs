@@ -1,0 +1,68 @@
+#!/bin/bash -l
+#PBS -N hen_cellopt12
+#PBS -q debug
+# Allowed queues for HEN tests: debug | debug-scaling ONLY (never prod/capacity/etc.)
+#PBS -A MatSciAI
+#PBS -l filesystems=flare
+#PBS -l select=1:ncpus=204:mpiprocs=1:ompthreads=1
+#PBS -l walltime=01:00:00
+#PBS -j oe
+#PBS -k doe
+
+# One Aurora node: async cell+ionic relax of all tile_*/sqs_*.extxyz in an
+# mc_sqs run, using the 12-tile XPU pool manager (12 XPU tiles).
+#
+# From hen/:
+#   qsub sqs_evaluation/simulations/cell_opt/run_cell_opt_pool.pbs
+#
+# debug walltime is typically ≤1 h. Resume:
+#   CELL_OPT_OUT=.../workflow_out/cell_opt_mc_sqs_20260730_032035 qsub ...
+# Completed tasks are skipped automatically.
+
+set -eo pipefail
+
+module reset
+module list
+
+export http_proxy="http://proxy.alcf.anl.gov:3128"
+export https_proxy="http://proxy.alcf.anl.gov:3128"
+export ftp_proxy="http://proxy.alcf.anl.gov:3128"
+
+export ZE_FLAT_DEVICE_HIERARCHY=FLAT
+export ZE_ENABLE_PCI_ID_DEVICE_ORDER=1
+# Manager assigns ZE_AFFINITY_MASK per worker; keep unset here.
+unset ZE_AFFINITY_MASK
+
+HEN=/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen
+FXPU_PREFIX=/lus/flare/projects/MatSciAI/xiaoliyan/software/conda/envs/hen-xpu
+# shellcheck disable=SC1091
+source "${HEN}/scripts/activate_hen_xpu.sh"
+export LD_LIBRARY_PATH="${FXPU_PREFIX}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+PY="$(command -v python)"
+
+EVAL="${HEN}/sqs_evaluation"
+POOL="${EVAL}/simulations/cell_opt/xpu_tile_pool.py"
+SQS_RUN="${HEN}/sqs_sampling/runs/mc_sqs_20260730_032035"
+# Default out dir is stable so walltime-limited jobs can resume cleanly.
+OUT="${CELL_OPT_OUT:-${EVAL}/workflow_out/cell_opt_mc_sqs_20260730_032035}"
+
+cd "${EVAL}"
+
+echo "job_id=${PBS_JOBID:-local}  host=$(hostname)"
+echo "sqs_run=${SQS_RUN}"
+echo "out=${OUT}"
+"${PY}" -c "import sys, torch; print(sys.executable); print('torch', torch.__version__)"
+
+"${PY}" "${POOL}" \
+  --sqs-run "${SQS_RUN}" \
+  --out-dir "${OUT}" \
+  --n-tiles 12 \
+  --python "${PY}" \
+  --fmax 0.01 \
+  --steps 500 \
+  --relax-cell \
+  --poll 10
+
+echo "CELL_OPT_POOL_OK out=${OUT}"
+ls -la "${OUT}"
+"${PY}" -c "import json; d=json.load(open('${OUT}/status.json')); print({k:d[k] for k in ('n_done','n_failed','n_skipped','n_tasks','wall_s','failed')})"
