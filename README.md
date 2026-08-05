@@ -50,6 +50,15 @@ energy_eV, forces = predict_ef(atoms, workers=12)
 
 1-node knobs (also embedded in the PBS): `FXPU_PHASE6_MULTINODE=0`, `FXPU_XCCL_UNEVEN_GATHER=broadcast`, `CCL_ZE_IPC_EXCHANGE=sockets`. Do **not** use multinode hierarchical/pidfd defaults on a single node.
 
+## Memory / OOM bounds (NaCl N³, FP64 E+F)
+
+| Config | Largest OK N | OOM / fail | Notes |
+|--------|-------------:|------------|-------|
+| **1 tile (W=1)** vanilla | **18** (46 656 atoms) | **N≥19** | `pbs/out/sweep_nacl_w1_memory/` — N=19, 20 OOM; N=32 also OOM (no vanilla baseline at production size) |
+| **1 node (W=12)** XCCL | **32** (262 144 atoms) | **N≥33** (hard OOM **N≥34**) | `pbs/out/w12_n_memory_sweep_16_40/` — contiguous OK through N=23; N=24/31 can crash; N=25–30,32 OK non-monotonic |
+
+Details and entrypoints: [`docs/w12_nacl_xccl_recipe.md`](docs/w12_nacl_xccl_recipe.md).
+
 ## SQS quick start
 
 ```bash
