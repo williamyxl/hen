@@ -1,0 +1,85 @@
+#!/bin/bash -l
+#PBS -N 1node_ef_n18
+#PBS -q debug
+#PBS -A MatSciAI
+#PBS -l filesystems=flare
+#PBS -l select=1:ncpus=204:mpiprocs=1:ompthreads=1
+#PBS -l walltime=00:55:00
+#PBS -j oe
+#PBS -k doe
+#
+# 1-node XCCL recipe test: NaCl 18³ W=1,2,4,6,12 — energy, AG forces, timing, vs-W1 parity.
+#   qsub pbs/10_1node_ef_atoms.pbs
+#
+# Recipe: docs/w12_nacl_xccl_recipe.md
+# Python: scripts/fxpu_1node_ef_atoms.py
+
+module reset
+export http_proxy="http://proxy.alcf.anl.gov:3128"
+export https_proxy="http://proxy.alcf.anl.gov:3128"
+
+PROJECT_ROOT="/lus/flare/projects/MatSciAI/xiaoliyan/workdir/hen"
+cd "${PROJECT_ROOT}"
+
+# --- test inputs ---
+export FXPU_NACL_N="${FXPU_NACL_N:-18}"
+export FXPU_LADDER="${FXPU_LADDER:-1,2,4,6,12}"
+export FXPU_REPEATS="${FXPU_REPEATS:-3}"
+export FXPU_RATTLE="${FXPU_RATTLE:-0.05}"
+export FXPU_SEED="${FXPU_SEED:-0}"
+export FXPU_UMA_CKPT="${FXPU_UMA_CKPT:-${PROJECT_ROOT}/uma-cache/uma-s-1p2.pt}"
+export FXPU_OUT="${FXPU_OUT:-${PROJECT_ROOT}/pbs/out/1node_ef_ladder_n${FXPU_NACL_N}}"
+
+# --- 1-node XCCL recipe (broadcast + sockets; W<=12) ---
+export ZE_FLAT_DEVICE_HIERARCHY=FLAT
+unset ZE_AFFINITY_MASK
+
+export PYTHONUNBUFFERED=1
+export RAY_DISABLE_DASHBOARD=1
+export RAY_raylet_start_wait_time_s=300
+export RAY_DEDUP_LOGS=0
+
+export FXPU_DIST_BACKEND=xccl
+export FXPU_PHASE3_LAUNCH=1
+export FXPU_PHASE4_ODD_AR=0
+export FXPU_PHASE6_MULTINODE=0
+export FXPU_TILES_PER_NODE=12
+export FXPU_EDGEWISE_AC_BISECT=2
+
+export FXPU_XCCL_UNEVEN_GATHER=broadcast
+export FXPU_XCCL_RS_MODE=auto
+export FXPU_XCCL_RS_REDUCE_MIN=19000
+export FXPU_XCCL_RS_CHUNK=0
+export FXPU_XCCL_PAD_ALIGN=32
+export FXPU_AUTO_GLOO_UNEVEN=0
+export FXPU_GP_PAD_ATOMS=0
+
+export FXPU_FI_PROVIDER=tcp
+export FI_PROVIDER=tcp
+export CCL_ATL_TRANSPORT=ofi
+export CCL_ZE_IPC_EXCHANGE=sockets
+export CCL_WORKER_COUNT=1
+export CCL_PROCESS_LAUNCHER=none
+unset CCL_KVS_MODE
+unset PMI_RANK PMI_SIZE PMI_FD PMI_JOBID PMI_LOCAL_RANK PMI_LOCAL_SIZE
+unset PALS_LOCAL_RANKID PALS_LOCAL_SIZE PALS_RANKID
+unset MPI_LOCALRANKID MPI_LOCALNRANKS
+unset FI_TCP_IFACE
+unset FXPU_XCCL_HIER_INTER FXPU_XCCL_HIER_INTER_CHUNKS
+unset FXPU_XCCL_HIER_INTER_ASYNC FXPU_XCCL_HIER_INTER_OVERLAP_SRC
+unset FXPU_RAY_PARALLEL_BRINGUP
+
+export RAY_TMPDIR="/tmp/r${USER}-1node-ef-$$"
+mkdir -p "${RAY_TMPDIR}" "${FXPU_OUT}"
+export TMPDIR="${RAY_TMPDIR}"
+
+# shellcheck disable=SC1091
+source "${PROJECT_ROOT}/scripts/activate_fxpu.sh"
+export PYTHONPATH="${PROJECT_ROOT}/shim:${PROJECT_ROOT}:${PROJECT_ROOT}/sqs_sampling:${PROJECT_ROOT}/scripts${PYTHONPATH:+:$PYTHONPATH}"
+
+echo "1node_ef_ladder  N=${FXPU_NACL_N}  ladder=${FXPU_LADDER}  repeats=${FXPU_REPEATS}  out=${FXPU_OUT}  $(date -u)" | tee "${FXPU_OUT}/STATUS.txt"
+python -u scripts/fxpu_1node_ef_atoms.py
+rc=$?
+echo "rc=${rc} $(date -u)" | tee -a "${FXPU_OUT}/STATUS.txt"
+[[ -f "${FXPU_OUT}/REPORT.md" ]] && cat "${FXPU_OUT}/REPORT.md" | tee -a "${FXPU_OUT}/STATUS.txt"
+exit "${rc}"
