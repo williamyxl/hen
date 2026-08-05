@@ -234,6 +234,9 @@ def run_mc(cfg: dict, *, config_path: Path | None = None) -> Path:
     n_steps = int(cfg["n_steps"])
     equil = int(cfg["equilibrate_steps"])
     sample_every = int(cfg["sample_every"])
+    log_every = int(cfg.get("log_every") or max(n_steps // 10, 1))
+    if log_every < 1:
+        raise ValueError(f"log_every must be >= 1 (got {log_every})")
 
     traj_path = Path(cfg["trajectory_file"])
     if traj_path.exists():
@@ -328,7 +331,7 @@ def run_mc(cfg: dict, *, config_path: Path | None = None) -> Path:
                 write(traj_path, frame, format="extxyz", append=True)
                 samples.append((e, frame_score, frame))
 
-            if step % max(n_steps // 10, 1) == 0:
+            if step % log_every == 0:
                 log.info(
                     "step %d/%d  E=%.6f  accept=%.3f  W_new/W_old=%.4f  "
                     "best_E=%.6f  best_|alpha|=%.4f",
