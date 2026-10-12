@@ -41,7 +41,7 @@ GFN2_TBLITE: dict[str, Any] = {
 }
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-ALLOWED_UMA_CHECKPOINTS = frozenset({"uma-s-1p2.pt"})
+ALLOWED_UMA_CHECKPOINTS = frozenset({"uma-s-1p2.pt", "uma-m-1p1.pt"})
 UMA_DEFAULTS: dict[str, Any] = {
     "model": str(_PROJECT_ROOT / "uma-cache" / "uma-s-1p2.pt"),
     "task": "omat",
@@ -94,7 +94,7 @@ def resolve_torch_dtype(dtype: str | Any | None = None) -> Any:
 
 
 def assert_allowed_uma_checkpoint(model: str | Path) -> Path:
-    """Only allow uma-s-1p2.pt for this deployment."""
+    """Allow the local uma-s-1p2 and uma-m-1p1 checkpoints."""
     path = Path(model)
     if path.suffix == ".pt" and path.name not in ALLOWED_UMA_CHECKPOINTS:
         raise ValueError(
